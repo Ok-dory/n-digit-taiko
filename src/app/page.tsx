@@ -1,37 +1,25 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 import Link from "next/link";
-import type { Base, Difficulty, GameMode, TimeAttackDuration } from "@/types/game";
-import { configToSearchParams } from "@/utils/gameConfig";
-
-const MODES: { value: GameMode; label: string }[] = [
-  { value: "practice", label: "Practice (무제한)" },
-  { value: "timeAttack", label: "Time Attack" },
-  { value: "endless", label: "Endless" },
-];
-
-const DIFFICULTIES: { value: Difficulty; label: string }[] = [
-  { value: "easy", label: "Easy" },
-  { value: "medium", label: "Medium" },
-  { value: "hard", label: "Hard" },
-  { value: "insane", label: "Insane" },
-];
-
-const DURATIONS: TimeAttackDuration[] = [30, 60, 90, 120];
+import type { Base } from "@/types/game";
+import { SettingsManager } from "@/game/SettingsManager";
 
 export default function Home() {
   const router = useRouter();
-  const [mode, setMode] = useState<GameMode>("practice");
+  const [name, setName] = useState("");
   const [base, setBase] = useState<Base>(2);
-  const [difficulty, setDifficulty] = useState<Difficulty>("easy");
-  const [duration, setDuration] = useState<TimeAttackDuration>(30);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setName(SettingsManager.loadPlayerName());
+  }, []);
 
   const startGame = () => {
-    const params = configToSearchParams(
-      mode === "timeAttack" ? { mode, base, difficulty, duration } : { mode, base, difficulty }
-    );
+    if (!name.trim()) return;
+    SettingsManager.savePlayerName(name.trim());
+    const params = new URLSearchParams({ base: String(base), name: name.trim() });
     router.push(`/play?${params.toString()}`);
   };
 
@@ -39,45 +27,21 @@ export default function Home() {
     <main className="flex flex-1 flex-col items-center justify-center gap-10 px-6 py-12">
       <div className="text-center">
         <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">N진수 태고</h1>
-        <p className="mt-2 text-slate-400">숫자가 나오면 그 진법 조합을 최대한 빠르고 정확하게 완성하세요.</p>
+        <p className="mt-2 text-slate-400">숫자가 나오면 그 진법 조합을 30초 안에 최대한 빠르고 정확하게 완성하세요.</p>
       </div>
 
       <div className="w-full max-w-md space-y-6 rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
         <section>
-          <h2 className="mb-2 text-sm font-semibold text-slate-400">모드</h2>
-          <div className="grid grid-cols-3 gap-2">
-            {MODES.map((m) => (
-              <button
-                key={m.value}
-                onClick={() => setMode(m.value)}
-                className={`rounded-lg px-3 py-2 text-sm transition-colors ${
-                  mode === m.value ? "bg-orange-500 text-white" : "bg-slate-800 text-slate-300 hover:bg-slate-700"
-                }`}
-              >
-                {m.label}
-              </button>
-            ))}
-          </div>
+          <h2 className="mb-2 text-sm font-semibold text-slate-400">이름</h2>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && startGame()}
+            placeholder="이름을 입력하세요"
+            maxLength={20}
+            className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm outline-none focus:border-orange-500"
+          />
         </section>
-
-        {mode === "timeAttack" && (
-          <section>
-            <h2 className="mb-2 text-sm font-semibold text-slate-400">제한시간</h2>
-            <div className="grid grid-cols-4 gap-2">
-              {DURATIONS.map((d) => (
-                <button
-                  key={d}
-                  onClick={() => setDuration(d)}
-                  className={`rounded-lg px-3 py-2 text-sm transition-colors ${
-                    duration === d ? "bg-orange-500 text-white" : "bg-slate-800 text-slate-300 hover:bg-slate-700"
-                  }`}
-                >
-                  {d}초
-                </button>
-              ))}
-            </div>
-          </section>
-        )}
 
         <section>
           <h2 className="mb-2 text-sm font-semibold text-slate-400">진법: {base}진수</h2>
@@ -95,26 +59,10 @@ export default function Home() {
           </div>
         </section>
 
-        <section>
-          <h2 className="mb-2 text-sm font-semibold text-slate-400">난이도</h2>
-          <div className="grid grid-cols-4 gap-2">
-            {DIFFICULTIES.map((d) => (
-              <button
-                key={d.value}
-                onClick={() => setDifficulty(d.value)}
-                className={`rounded-lg px-3 py-2 text-sm transition-colors ${
-                  difficulty === d.value ? "bg-orange-500 text-white" : "bg-slate-800 text-slate-300 hover:bg-slate-700"
-                }`}
-              >
-                {d.label}
-              </button>
-            ))}
-          </div>
-        </section>
-
         <button
           onClick={startGame}
-          className="w-full rounded-xl bg-orange-500 py-3 text-lg font-semibold text-white transition-colors hover:bg-orange-400"
+          disabled={!name.trim()}
+          className="w-full rounded-xl bg-orange-500 py-3 text-lg font-semibold text-white transition-colors hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-50"
         >
           게임 시작
         </button>

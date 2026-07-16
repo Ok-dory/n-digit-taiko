@@ -3,19 +3,6 @@ export type Base = 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 |
 export const MIN_BASE: Base = 2;
 export const MAX_BASE: Base = 16;
 
-export type GameMode = "practice" | "timeAttack" | "endless";
-
-export type TimeAttackDuration = 30 | 60 | 90 | 120;
-
-export type Difficulty = "easy" | "medium" | "hard" | "insane";
-
-export interface DifficultySettings {
-  /** number of digits shown per problem */
-  digitCount: number;
-  /** digit count used during the bonus round window (timeAttack only) */
-  bonusDigitCount: number;
-}
-
 /** Immediate per-keypress result: no timing judgment, just right or wrong. */
 export type Judgment = "correct" | "wrong";
 
@@ -33,10 +20,8 @@ export interface DigitEntry {
 }
 
 export interface GameConfig {
-  mode: GameMode;
   base: Base;
-  difficulty: Difficulty;
-  duration?: TimeAttackDuration;
+  playerName: string;
 }
 
 export interface JudgmentEvent {
@@ -76,7 +61,6 @@ export interface RankingEntry {
   combo: number;
   hps: number;
   base: Base;
-  difficulty: Difficulty;
   created_at?: string;
 }
 

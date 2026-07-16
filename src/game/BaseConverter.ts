@@ -1,13 +1,6 @@
-import type { Base, DifficultySettings, Difficulty, DigitProblem } from "@/types/game";
+import type { Base, DigitProblem } from "@/types/game";
 
 const DIGIT_SYMBOLS = "0123456789ABCDEF";
-
-export const DIFFICULTY_PRESETS: Record<Difficulty, DifficultySettings> = {
-  easy: { digitCount: 3, bonusDigitCount: 4 },
-  medium: { digitCount: 4, bonusDigitCount: 5 },
-  hard: { digitCount: 5, bonusDigitCount: 6 },
-  insane: { digitCount: 6, bonusDigitCount: 7 },
-};
 
 /**
  * Pure, stateless conversion + problem-generation helpers for arbitrary

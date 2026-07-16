@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { GameEngine, type BonusEvent } from "@/game/GameEngine";
-import type { DigitEntry, DigitProblem, GameConfig, JudgmentEvent, ScoreState } from "@/types/game";
+import { GameEngine, TOTAL_TIME_SECONDS, type BonusEvent } from "@/game/GameEngine";
+import type { Base, DigitEntry, DigitProblem, JudgmentEvent, ScoreState } from "@/types/game";
 
 export interface UseGameEngineResult {
   scoreState: ScoreState;
@@ -11,17 +11,16 @@ export interface UseGameEngineResult {
   entries: DigitEntry[];
   lastJudgment: JudgmentEvent | null;
   lastBonus: BonusEvent | null;
-  secondsRemaining: number | null;
+  secondsRemaining: number;
   elapsedSeconds: number;
   hps: number;
   bonusActive: boolean;
   isGameOver: boolean;
   pressDigit: (symbol: string) => void;
-  endSession: () => void;
 }
 
 /** Wires a GameEngine instance to React state so components stay UI-only. */
-export function useGameEngine(config: GameConfig): UseGameEngineResult {
+export function useGameEngine(base: Base): UseGameEngineResult {
   const engineRef = useRef<GameEngine | null>(null);
 
   const [scoreState, setScoreState] = useState<ScoreState>({
@@ -38,16 +37,14 @@ export function useGameEngine(config: GameConfig): UseGameEngineResult {
   const [entries, setEntries] = useState<DigitEntry[]>([]);
   const [lastJudgment, setLastJudgment] = useState<JudgmentEvent | null>(null);
   const [lastBonus, setLastBonus] = useState<BonusEvent | null>(null);
-  const [secondsRemaining, setSecondsRemaining] = useState<number | null>(
-    config.mode === "timeAttack" ? (config.duration ?? 60) : null
-  );
+  const [secondsRemaining, setSecondsRemaining] = useState(TOTAL_TIME_SECONDS);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [hps, setHps] = useState(0);
   const [bonusActive, setBonusActive] = useState(false);
   const [isGameOver, setIsGameOver] = useState(false);
 
   useEffect(() => {
-    const engine = new GameEngine(config, {
+    const engine = new GameEngine(base, {
       onScoreChange: setScoreState,
       onProblemChange: (p, idx, newEntries) => {
         setProblem(p);
@@ -71,11 +68,9 @@ export function useGameEngine(config: GameConfig): UseGameEngineResult {
       engine.destroy();
       engineRef.current = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [config.mode, config.base, config.difficulty, config.duration]);
+  }, [base]);
 
   const pressDigit = useMemo(() => (symbol: string) => engineRef.current?.manualInput(symbol), []);
-  const endSession = useMemo(() => () => engineRef.current?.finish(), []);
 
   return {
     scoreState,
@@ -90,6 +85,5 @@ export function useGameEngine(config: GameConfig): UseGameEngineResult {
     bonusActive,
     isGameOver,
     pressDigit,
-    endSession,
   };
 }

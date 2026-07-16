@@ -3,14 +3,13 @@ import type { Base, ScoreState } from "@/types/game";
 interface HUDProps {
   scoreState: ScoreState;
   base: Base;
-  secondsRemaining: number | null;
-  elapsedSeconds: number;
+  secondsRemaining: number;
   hps: number;
   bonusActive: boolean;
 }
 
-export function HUD({ scoreState, base, secondsRemaining, elapsedSeconds, hps, bonusActive }: HUDProps) {
-  const timeLabel = secondsRemaining !== null ? `${Math.ceil(secondsRemaining)}초` : `${Math.floor(elapsedSeconds)}초`;
+export function HUD({ scoreState, base, secondsRemaining, hps, bonusActive }: HUDProps) {
+  const timeLabel = `${Math.ceil(secondsRemaining)}초`;
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-y-2 px-6 py-3 text-sm sm:text-base">

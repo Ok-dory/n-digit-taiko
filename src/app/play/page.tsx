@@ -2,13 +2,32 @@
 
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { PlayScreen } from "@/components/game/PlayScreen";
-import { searchParamsToConfig } from "@/utils/gameConfig";
+import type { Base } from "@/types/game";
+
+function parseBase(raw: string | null): Base {
+  const n = Number(raw);
+  return n >= 2 && n <= 16 ? (n as Base) : 2;
+}
 
 function PlayPageInner() {
   const searchParams = useSearchParams();
-  const config = searchParamsToConfig(searchParams);
-  return <PlayScreen key={`${config.mode}-${config.base}-${config.difficulty}-${config.duration}`} config={config} />;
+  const base = parseBase(searchParams.get("base"));
+  const name = (searchParams.get("name") ?? "").trim();
+
+  if (!name) {
+    return (
+      <main className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
+        <p className="text-slate-400">이름이 필요합니다. 홈에서 이름을 입력하고 시작해주세요.</p>
+        <Link href="/" className="text-orange-400 hover:text-orange-300">
+          홈으로
+        </Link>
+      </main>
+    );
+  }
+
+  return <PlayScreen key={`${base}-${name}`} base={base} playerName={name} />;
 }
 
 export default function PlayPage() {

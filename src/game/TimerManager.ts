@@ -1,25 +1,21 @@
-import type { GameMode, TimeAttackDuration } from "@/types/game";
-
-export type TimerTickListener = (secondsRemaining: number | null) => void;
+export type TimerTickListener = (secondsRemaining: number) => void;
 export type TimerEndListener = () => void;
 
 /**
- * Drives the countdown for Time Attack, tracks elapsed time for
- * Practice/Endless (no limit), and supports small time bonuses on
- * correct answers. Framework-agnostic: consumers subscribe to ticks.
+ * Drives the fixed-duration countdown (matching the original game's 30s
+ * timer) and supports small time bonuses on correct answers.
+ * Framework-agnostic: consumers subscribe to ticks.
  */
 export class TimerManager {
-  private mode: GameMode;
-  private remainingMs: number | null;
+  private remainingMs: number;
   private elapsedMs = 0;
   private lastTickAt = 0;
   private rafId: number | null = null;
   private tickListeners = new Set<TimerTickListener>();
   private endListeners = new Set<TimerEndListener>();
 
-  constructor(mode: GameMode, duration?: TimeAttackDuration) {
-    this.mode = mode;
-    this.remainingMs = mode === "timeAttack" ? (duration ?? 60) * 1000 : null;
+  constructor(durationSeconds: number) {
+    this.remainingMs = durationSeconds * 1000;
   }
 
   start(): void {
@@ -28,15 +24,13 @@ export class TimerManager {
       const delta = now - this.lastTickAt;
       this.lastTickAt = now;
       this.elapsedMs += delta;
+      this.remainingMs = Math.max(0, this.remainingMs - delta);
 
-      if (this.remainingMs !== null) {
-        this.remainingMs = Math.max(0, this.remainingMs - delta);
-        if (this.remainingMs === 0) {
-          this.notifyTick();
-          this.stop();
-          for (const listener of this.endListeners) listener();
-          return;
-        }
+      if (this.remainingMs === 0) {
+        this.notifyTick();
+        this.stop();
+        for (const listener of this.endListeners) listener();
+        return;
       }
       this.notifyTick();
       this.rafId = requestAnimationFrame(loop);
@@ -50,7 +44,6 @@ export class TimerManager {
   }
 
   addBonusSeconds(seconds: number): void {
-    if (this.remainingMs === null) return;
     this.remainingMs += seconds * 1000;
     this.notifyTick();
   }
@@ -59,8 +52,8 @@ export class TimerManager {
     return this.elapsedMs / 1000;
   }
 
-  getRemainingSeconds(): number | null {
-    return this.remainingMs === null ? null : this.remainingMs / 1000;
+  getRemainingSeconds(): number {
+    return this.remainingMs / 1000;
   }
 
   onTick(listener: TimerTickListener): () => void {
@@ -74,7 +67,6 @@ export class TimerManager {
   }
 
   private notifyTick(): void {
-    const remaining = this.getRemainingSeconds();
-    for (const listener of this.tickListeners) listener(remaining);
+    for (const listener of this.tickListeners) listener(this.getRemainingSeconds());
   }
 }
