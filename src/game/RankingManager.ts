@@ -1,32 +1,77 @@
-import { getSupabaseClient } from "@/utils/supabaseClient";
+import {
+  addDoc,
+  collection,
+  getDocs,
+  limit as fsLimit,
+  orderBy,
+  query,
+  Timestamp,
+  where,
+  type QueryDocumentSnapshot,
+  type DocumentData,
+} from "firebase/firestore";
+import { getFirestoreDb } from "@/utils/firebaseClient";
 import { LocalRankingStore } from "@/game/LocalRankingStore";
 import type { Base, PlayerStats, RankingBoard, RankingEntry } from "@/types/game";
 
-const RANKING_TABLE = "ranking";
+const RANKING_COLLECTION = "ranking";
 const RANKING_WINDOW_DAYS = 7;
 const TOP_N = 20;
+/**
+ * Firestore requires the first orderBy to match a field with a range
+ * filter, so the weekly query is ordered by created_at (not score) and
+ * re-sorted by score client-side after fetching. This cap keeps that
+ * fetch bounded even if a base gets a busy week.
+ */
+const WEEKLY_FETCH_CAP = 200;
 
-function sevenDaysAgoIso(): string {
+function sevenDaysAgo(): Date {
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - RANKING_WINDOW_DAYS);
-  return cutoff.toISOString();
+  return cutoff;
+}
+
+function docToEntry(doc: QueryDocumentSnapshot<DocumentData>): RankingEntry {
+  const data = doc.data();
+  return {
+    id: doc.id,
+    player_name: data.player_name,
+    score: data.score,
+    accuracy: data.accuracy,
+    combo: data.combo,
+    hps: data.hps,
+    base: data.base,
+    created_at: data.created_at instanceof Timestamp ? data.created_at.toDate().toISOString() : undefined,
+  };
 }
 
 /**
- * Reads/writes the ranking table, one board per base. Uses Supabase when
- * configured (shared, cross-device leaderboard); otherwise falls back to
- * a localStorage-backed store so the leaderboard works with zero setup,
- * matching the original game's local rankings.json file.
+ * Reads/writes the ranking collection, one board per base. Uses Firestore
+ * when configured (shared, cross-device leaderboard); otherwise falls
+ * back to a localStorage-backed store so the leaderboard works with zero
+ * setup, matching the original game's local rankings.json file.
  */
 export class RankingManager {
   static async submitScore(entry: RankingEntry): Promise<{ error: string | null }> {
-    const supabase = getSupabaseClient();
-    if (!supabase) {
+    const db = getFirestoreDb();
+    if (!db) {
       LocalRankingStore.submit(entry);
       return { error: null };
     }
-    const { error } = await supabase.from(RANKING_TABLE).insert(entry);
-    return { error: error?.message ?? null };
+    try {
+      await addDoc(collection(db, RANKING_COLLECTION), {
+        player_name: entry.player_name,
+        score: entry.score,
+        accuracy: entry.accuracy,
+        combo: entry.combo,
+        hps: entry.hps,
+        base: entry.base,
+        created_at: Timestamp.now(),
+      });
+      return { error: null };
+    } catch (e) {
+      return { error: e instanceof Error ? e.message : "Unknown error" };
+    }
   }
 
   /**
@@ -34,42 +79,50 @@ export class RankingManager {
    * is the current week's top scores, re-fetched every 7-day window.
    */
   static async getBoard(base: Base, limit: number = TOP_N): Promise<RankingBoard> {
-    const supabase = getSupabaseClient();
-    if (!supabase) return LocalRankingStore.getBoard(base, limit);
+    const db = getFirestoreDb();
+    if (!db) return LocalRankingStore.getBoard(base, limit);
 
-    const [bestResult, weeklyResult] = await Promise.all([
-      supabase
-        .from(RANKING_TABLE)
-        .select("*")
-        .eq("base", base)
-        .order("score", { ascending: false })
-        .limit(1),
-      supabase
-        .from(RANKING_TABLE)
-        .select("*")
-        .eq("base", base)
-        .gte("created_at", sevenDaysAgoIso())
-        .order("score", { ascending: false })
-        .limit(limit),
-    ]);
+    try {
+      const bestQuery = query(
+        collection(db, RANKING_COLLECTION),
+        where("base", "==", base),
+        orderBy("score", "desc"),
+        fsLimit(1)
+      );
+      const weeklyQuery = query(
+        collection(db, RANKING_COLLECTION),
+        where("base", "==", base),
+        where("created_at", ">=", Timestamp.fromDate(sevenDaysAgo())),
+        orderBy("created_at", "desc"),
+        fsLimit(WEEKLY_FETCH_CAP)
+      );
 
-    const allTimeBest = (bestResult.data?.[0] as RankingEntry | undefined) ?? null;
-    const weekly = bestResult.error || weeklyResult.error
-      ? []
-      : (weeklyResult.data as RankingEntry[]).filter((e) => e.id !== allTimeBest?.id);
+      const [bestSnap, weeklySnap] = await Promise.all([getDocs(bestQuery), getDocs(weeklyQuery)]);
 
-    return { allTimeBest, weekly };
+      const allTimeBest = bestSnap.empty ? null : docToEntry(bestSnap.docs[0]);
+      const weekly = weeklySnap.docs
+        .map(docToEntry)
+        .filter((e) => e.id !== allTimeBest?.id)
+        .sort((a, b) => b.score - a.score || b.accuracy - a.accuracy)
+        .slice(0, limit);
+
+      return { allTimeBest, weekly };
+    } catch {
+      return { allTimeBest: null, weekly: [] };
+    }
   }
 
   static async getPlayerStats(playerName: string): Promise<PlayerStats | null> {
-    const supabase = getSupabaseClient();
-    const rows = supabase
+    const db = getFirestoreDb();
+    const rows = db
       ? await (async () => {
-          const { data, error } = await supabase
-            .from(RANKING_TABLE)
-            .select("score, accuracy, combo, hps")
-            .eq("player_name", playerName);
-          return error ? null : data;
+          try {
+            const q = query(collection(db, RANKING_COLLECTION), where("player_name", "==", playerName));
+            const snap = await getDocs(q);
+            return snap.docs.map(docToEntry);
+          } catch {
+            return null;
+          }
         })()
       : LocalRankingStore.getByPlayer(playerName);
 

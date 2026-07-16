@@ -21,7 +21,7 @@ function writeAll(entries: RankingEntry[]): void {
 
 /**
  * Browser-local fallback for the ranking board, mirroring the original
- * game's local rankings.json file. Used automatically when Supabase isn't
+ * game's local rankings.json file. Used automatically when Firebase isn't
  * configured, so the leaderboard works with zero setup; scores stay on
  * this device/browser only.
  */

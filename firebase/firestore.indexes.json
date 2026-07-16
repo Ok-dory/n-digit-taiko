@@ -1,0 +1,21 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "ranking",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "base", "order": "ASCENDING" },
+        { "fieldPath": "score", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "ranking",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "base", "order": "ASCENDING" },
+        { "fieldPath": "created_at", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

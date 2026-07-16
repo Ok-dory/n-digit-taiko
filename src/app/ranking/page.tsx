@@ -57,7 +57,7 @@ export default function RankingPage() {
 
       {board !== null && rows.length === 0 && (
         <p className="text-center text-slate-500">
-          아직 {base}진수 기록이 없습니다. Supabase가 설정되지 않았다면 .env.local에 환경변수를 추가하세요.
+          아직 {base}진수 기록이 없습니다. Firebase가 설정되지 않았다면 .env.local에 환경변수를 추가하세요.
         </p>
       )}
 

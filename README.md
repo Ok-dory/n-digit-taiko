@@ -10,7 +10,8 @@ Python/Pygame "Binary Taiko" prototype — not a port.
 - Canvas API for the falling-note rendering
 - Framer Motion for judgment/UI animation
 - Howler.js for sound effects
-- Supabase (Postgres) for the weekly ranking board
+- Firebase Firestore for the ranking board (one leaderboard per base, plus a
+  persistent all-time-best pinned at rank 1)
 - Deploys to Vercel
 
 ## Architecture
@@ -26,7 +27,9 @@ through the hooks in `src/hooks/`.
 - `TimerManager`, `ScoreManager`, `AudioManager` — countdown/elapsed time, score/combo/accuracy,
   sfx playback
 - `GameEngine` — orchestrates the above, owns the canvas render loop and judgment logic
-- `RankingManager` — Supabase reads/writes for the 7-day rolling leaderboard
+- `RankingManager` — Firestore reads/writes, one board per base with a persistent
+  all-time-best plus a 7-day rolling window; falls back to `LocalRankingStore`
+  (localStorage) when Firebase isn't configured
 
 ## Local setup
 
@@ -35,9 +38,17 @@ npm install
 npm run dev
 ```
 
-Ranking and stats pages work without Supabase configured (they show an empty/graceful state).
-To enable them, copy `.env.local.example` to `.env.local`, create a Supabase project, run
-`supabase/schema.sql` in its SQL editor, and fill in the two `NEXT_PUBLIC_SUPABASE_*` values.
+Ranking and stats pages work without Firebase configured (they show an empty/graceful state,
+backed by localStorage). To enable a shared cross-device leaderboard:
+
+1. Create a project at [firebase.google.com](https://firebase.google.com) and enable Firestore
+   (Native mode).
+2. Paste `firebase/firestore.rules` into Firestore Database → Rules in the console.
+3. Add the composite indexes in `firebase/firestore.indexes.json` — either via the Firebase CLI
+   (`firebase deploy --only firestore:indexes`) or by running the app once against Firestore and
+   clicking the auto-generated index-creation link Firestore prints in the console error.
+4. Copy `.env.local.example` to `.env.local` and fill in the six `NEXT_PUBLIC_FIREBASE_*` values
+   from Project settings → General → Your apps → SDK setup and configuration.
 
 Sound effects are loaded from `/public/sfx/*.mp3` (perfect, good, miss, combo, game-over) but no
 audio files are bundled — drop your own in and `AudioManager` will pick them up; missing files
@@ -46,4 +57,4 @@ fail silently so gameplay isn't blocked.
 ## Deploy
 
 Push to GitHub and import the repo on Vercel, or run `vercel deploy` from the project root.
-Remember to set the Supabase env vars in the Vercel project settings too.
+Remember to set the Firebase env vars in the Vercel project settings too.
