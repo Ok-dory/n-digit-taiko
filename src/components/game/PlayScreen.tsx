@@ -80,9 +80,9 @@ function ActiveGame({ base, playerName }: { base: Base; playerName: string }) {
         bonusActive={bonusActive}
       />
 
-      <div className="flex flex-1 flex-col lg:flex-row lg:gap-4 lg:px-4">
-        <div className="flex flex-1 flex-col">
-          <div className="flex flex-1 flex-col items-center justify-center gap-4">
+      <div className="flex flex-1 flex-col">
+        <div className="flex flex-1 items-center justify-center gap-6 lg:px-4">
+          <div className="flex flex-col items-center gap-4">
             {problem && (
               <div className="font-mono text-6xl font-extrabold text-slate-100 sm:text-7xl">
                 {problem.decimalValue}
@@ -95,20 +95,20 @@ function ActiveGame({ base, playerName }: { base: Base; playerName: string }) {
             base={base}
             problem={problem}
             digitIndex={digitIndex}
-            variant="inline"
-            className="lg:hidden"
+            variant="side"
+            className="hidden lg:block"
           />
-
-          <DigitPad base={base} onPress={pressDigit} />
         </div>
 
         <PlaceValueHelper
           base={base}
           problem={problem}
           digitIndex={digitIndex}
-          variant="side"
-          className="hidden lg:block lg:my-4"
+          variant="inline"
+          className="lg:hidden"
         />
+
+        <DigitPad base={base} onPress={pressDigit} />
       </div>
 
       <BonusFlash bonus={lastBonus} />

@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import type { Base, DigitProblem } from "@/types/game";
 
 const DIGIT_SYMBOLS = "0123456789ABCDEF";
@@ -14,14 +17,23 @@ interface PlaceValueHelperProps {
  * Shows, for the digit slot currently being entered, what decimal value
  * each candidate digit would contribute at that place — e.g. in a 3-base
  * number's first slot, pressing "1" contributes 81, "2" contributes 162.
- * Never reveals which digit is correct, only the place-value arithmetic;
- * re-renders for the next slot as soon as one is entered.
+ * Never reveals which digit is correct, only the place-value arithmetic.
+ * Keeps showing the last slot's values through the brief gap between
+ * problems (problem is momentarily null/exhausted) instead of unmounting,
+ * so the layout doesn't jump every time a number completes.
  */
 export function PlaceValueHelper({ base, problem, digitIndex, variant, className = "" }: PlaceValueHelperProps) {
-  if (!problem || digitIndex >= problem.digits.length) return null;
+  const [placeValue, setPlaceValue] = useState<number | null>(null);
 
-  const remainingDigits = problem.digits.length - 1 - digitIndex;
-  const placeValue = base ** remainingDigits;
+  useEffect(() => {
+    if (problem && digitIndex < problem.digits.length) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setPlaceValue(base ** (problem.digits.length - 1 - digitIndex));
+    }
+  }, [base, problem, digitIndex]);
+
+  if (placeValue === null) return null;
+
   const symbols = DIGIT_SYMBOLS.slice(0, base).split("");
 
   if (variant === "side") {
