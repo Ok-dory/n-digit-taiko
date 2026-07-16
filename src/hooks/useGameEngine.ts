@@ -1,68 +1,66 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { GameEngine } from "@/game/GameEngine";
-import type { DigitProblem, GameConfig, JudgmentEvent, ScoreState } from "@/types/game";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { GameEngine, type BonusEvent } from "@/game/GameEngine";
+import type { DigitEntry, DigitProblem, GameConfig, JudgmentEvent, ScoreState } from "@/types/game";
 
 export interface UseGameEngineResult {
-  canvasRef: React.RefObject<HTMLCanvasElement | null>;
   scoreState: ScoreState;
   problem: DigitProblem | null;
   digitIndex: number;
+  entries: DigitEntry[];
   lastJudgment: JudgmentEvent | null;
+  lastBonus: BonusEvent | null;
   secondsRemaining: number | null;
   elapsedSeconds: number;
+  hps: number;
+  bonusActive: boolean;
   isGameOver: boolean;
+  pressDigit: (symbol: string) => void;
   endSession: () => void;
 }
 
 /** Wires a GameEngine instance to React state so components stay UI-only. */
 export function useGameEngine(config: GameConfig): UseGameEngineResult {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const engineRef = useRef<GameEngine | null>(null);
 
   const [scoreState, setScoreState] = useState<ScoreState>({
     score: 0,
     combo: 0,
     maxCombo: 0,
-    perfectCount: 0,
-    goodCount: 0,
-    missCount: 0,
+    correctCount: 0,
+    wrongCount: 0,
     totalCount: 0,
     accuracy: 100,
   });
   const [problem, setProblem] = useState<DigitProblem | null>(null);
   const [digitIndex, setDigitIndex] = useState(0);
+  const [entries, setEntries] = useState<DigitEntry[]>([]);
   const [lastJudgment, setLastJudgment] = useState<JudgmentEvent | null>(null);
+  const [lastBonus, setLastBonus] = useState<BonusEvent | null>(null);
   const [secondsRemaining, setSecondsRemaining] = useState<number | null>(
     config.mode === "timeAttack" ? (config.duration ?? 60) : null
   );
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [hps, setHps] = useState(0);
+  const [bonusActive, setBonusActive] = useState(false);
   const [isGameOver, setIsGameOver] = useState(false);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const resize = () => {
-      const parent = canvas.parentElement;
-      if (!parent) return;
-      canvas.width = parent.clientWidth;
-      canvas.height = parent.clientHeight;
-    };
-    resize();
-    window.addEventListener("resize", resize);
-
-    const engine = new GameEngine(canvas, config, {
+    const engine = new GameEngine(config, {
       onScoreChange: setScoreState,
-      onProblemChange: (p, idx) => {
+      onProblemChange: (p, idx, newEntries) => {
         setProblem(p);
         setDigitIndex(idx);
+        setEntries([...newEntries]);
       },
       onJudgment: setLastJudgment,
-      onTick: (remaining, elapsed) => {
+      onBonus: setLastBonus,
+      onTick: (remaining, elapsed, currentHps, currentBonusActive) => {
         setSecondsRemaining(remaining);
         setElapsedSeconds(elapsed);
+        setHps(currentHps);
+        setBonusActive(currentBonusActive);
       },
       onGameOver: () => setIsGameOver(true),
     });
@@ -70,24 +68,28 @@ export function useGameEngine(config: GameConfig): UseGameEngineResult {
     engine.start();
 
     return () => {
-      window.removeEventListener("resize", resize);
       engine.destroy();
       engineRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [config.mode, config.base, config.difficulty, config.duration]);
 
-  const endSession = () => engineRef.current?.finish();
+  const pressDigit = useMemo(() => (symbol: string) => engineRef.current?.manualInput(symbol), []);
+  const endSession = useMemo(() => () => engineRef.current?.finish(), []);
 
   return {
-    canvasRef,
     scoreState,
     problem,
     digitIndex,
+    entries,
     lastJudgment,
+    lastBonus,
     secondsRemaining,
     elapsedSeconds,
+    hps,
+    bonusActive,
     isGameOver,
+    pressDigit,
     endSession,
   };
 }

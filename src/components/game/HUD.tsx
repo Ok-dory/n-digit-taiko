@@ -5,19 +5,23 @@ interface HUDProps {
   base: Base;
   secondsRemaining: number | null;
   elapsedSeconds: number;
+  hps: number;
+  bonusActive: boolean;
 }
 
-export function HUD({ scoreState, base, secondsRemaining, elapsedSeconds }: HUDProps) {
+export function HUD({ scoreState, base, secondsRemaining, elapsedSeconds, hps, bonusActive }: HUDProps) {
   const timeLabel = secondsRemaining !== null ? `${Math.ceil(secondsRemaining)}초` : `${Math.floor(elapsedSeconds)}초`;
 
   return (
-    <div className="flex items-center justify-between px-6 py-3 text-sm sm:text-base">
+    <div className="flex flex-wrap items-center justify-between gap-y-2 px-6 py-3 text-sm sm:text-base">
       <div className="flex gap-6">
         <Stat label="점수" value={scoreState.score.toLocaleString()} />
         <Stat label="콤보" value={`${scoreState.combo}`} accent={scoreState.combo > 0} />
+        <Stat label="HPS" value={hps.toFixed(1)} />
         <Stat label="정확도" value={`${scoreState.accuracy}%`} />
       </div>
-      <div className="flex gap-6">
+      <div className="flex items-center gap-6">
+        {bonusActive && <span className="animate-pulse text-xs font-bold text-rose-400">보너스 타임</span>}
         <Stat label="시간" value={timeLabel} />
         <Stat label={`${base}진수`} value="BASE" accent />
       </div>

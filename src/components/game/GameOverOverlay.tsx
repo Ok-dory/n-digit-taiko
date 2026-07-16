@@ -10,9 +10,10 @@ interface GameOverOverlayProps {
   scoreState: ScoreState;
   base: Base;
   difficulty: Difficulty;
+  hps: number;
 }
 
-export function GameOverOverlay({ scoreState, base, difficulty }: GameOverOverlayProps) {
+export function GameOverOverlay({ scoreState, base, difficulty, hps }: GameOverOverlayProps) {
   const [name, setName] = useState(SettingsManager.loadPlayerName());
   const [status, setStatus] = useState<"idle" | "submitting" | "done" | "error">("idle");
 
@@ -25,6 +26,7 @@ export function GameOverOverlay({ scoreState, base, difficulty }: GameOverOverla
       score: scoreState.score,
       accuracy: scoreState.accuracy,
       combo: scoreState.maxCombo,
+      hps,
       base,
       difficulty,
     });
@@ -39,7 +41,7 @@ export function GameOverOverlay({ scoreState, base, difficulty }: GameOverOverla
           <Row label="점수" value={scoreState.score.toLocaleString()} />
           <Row label="정확도" value={`${scoreState.accuracy}%`} />
           <Row label="최대 콤보" value={`${scoreState.maxCombo}`} />
-          <Row label="Miss" value={`${scoreState.missCount}`} />
+          <Row label="HPS" value={hps.toFixed(2)} />
         </div>
 
         {status !== "done" ? (

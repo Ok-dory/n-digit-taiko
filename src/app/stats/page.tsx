@@ -53,6 +53,7 @@ export default function StatsPage() {
           <StatCard label="최고 점수" value={stats.bestScore.toLocaleString()} />
           <StatCard label="총 플레이 횟수" value={`${stats.totalPlays}`} />
           <StatCard label="평균 콤보" value={stats.averageCombo.toFixed(1)} />
+          <StatCard label="평균 HPS" value={stats.averageHps.toFixed(2)} />
         </div>
       )}
     </main>

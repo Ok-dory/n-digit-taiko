@@ -3,29 +3,33 @@ export type Base = 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 |
 export const MIN_BASE: Base = 2;
 export const MAX_BASE: Base = 16;
 
-export type GameMode = "binary" | "nbase" | "practice" | "timeAttack" | "endless" | "learn";
+export type GameMode = "practice" | "timeAttack" | "endless";
 
-export type TimeAttackDuration = 60 | 90 | 120;
+export type TimeAttackDuration = 30 | 60 | 90 | 120;
 
 export type Difficulty = "easy" | "medium" | "hard" | "insane";
 
 export interface DifficultySettings {
-  minDigits: number;
-  maxDigits: number;
-  /** pixels per second the falling note travels */
-  noteSpeed: number;
-  /** ms allowed to hit a digit before it counts as Miss */
-  hitWindowMs: number;
-  timeBonusPerDigit: number;
+  /** number of digits shown per problem */
+  digitCount: number;
+  /** digit count used during the bonus round window (timeAttack only) */
+  bonusDigitCount: number;
 }
 
-export type Judgment = "perfect" | "good" | "miss";
+/** Immediate per-keypress result: no timing judgment, just right or wrong. */
+export type Judgment = "correct" | "wrong";
 
 export interface DigitProblem {
   id: string;
   base: Base;
   decimalValue: number;
   digits: string[];
+}
+
+/** What the player actually typed at one digit slot, and whether it matched. */
+export interface DigitEntry {
+  digit: string;
+  judgment: Judgment;
 }
 
 export interface GameConfig {
@@ -39,6 +43,7 @@ export interface JudgmentEvent {
   judgment: Judgment;
   expected: string;
   received: string;
+  digitIndex: number;
   timestamp: number;
 }
 
@@ -46,9 +51,8 @@ export interface ScoreState {
   score: number;
   combo: number;
   maxCombo: number;
-  perfectCount: number;
-  goodCount: number;
-  missCount: number;
+  correctCount: number;
+  wrongCount: number;
   totalCount: number;
   accuracy: number;
 }
@@ -70,6 +74,7 @@ export interface RankingEntry {
   score: number;
   accuracy: number;
   combo: number;
+  hps: number;
   base: Base;
   difficulty: Difficulty;
   created_at?: string;
@@ -80,4 +85,5 @@ export interface PlayerStats {
   bestScore: number;
   totalPlays: number;
   averageCombo: number;
+  averageHps: number;
 }

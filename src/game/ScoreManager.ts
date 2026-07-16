@@ -1,25 +1,22 @@
 import type { Judgment, ScoreState } from "@/types/game";
 
-const JUDGMENT_POINTS: Record<Judgment, number> = {
-  perfect: 100,
-  good: 50,
-  miss: 0,
-};
-
-const COMBO_MULTIPLIER_STEP = 0.02;
-const MAX_COMBO_MULTIPLIER = 3;
+const CORRECT_POINTS = 10;
+const WRONG_PENALTY = 5;
 
 export type ScoreChangeListener = (state: ScoreState) => void;
 
-/** Tracks score, combo, and accuracy for the current run. Pure state, no rendering. */
+/**
+ * Tracks score, combo, and accuracy for the current run. Every keypress is
+ * judged immediately as correct or wrong (no timing window) — combo resets
+ * on a wrong digit and score can go negative, matching the original game.
+ */
 export class ScoreManager {
   private state: ScoreState = {
     score: 0,
     combo: 0,
     maxCombo: 0,
-    perfectCount: 0,
-    goodCount: 0,
-    missCount: 0,
+    correctCount: 0,
+    wrongCount: 0,
     totalCount: 0,
     accuracy: 100,
   };
@@ -29,23 +26,27 @@ export class ScoreManager {
     const s = this.state;
     s.totalCount += 1;
 
-    if (judgment === "miss") {
-      s.combo = 0;
-      s.missCount += 1;
-    } else {
+    if (judgment === "correct") {
       s.combo += 1;
       s.maxCombo = Math.max(s.maxCombo, s.combo);
-      if (judgment === "perfect") s.perfectCount += 1;
-      else s.goodCount += 1;
-
-      const multiplier = Math.min(1 + s.combo * COMBO_MULTIPLIER_STEP, MAX_COMBO_MULTIPLIER);
-      s.score += Math.round(JUDGMENT_POINTS[judgment] * multiplier);
+      s.correctCount += 1;
+      s.score += CORRECT_POINTS;
+    } else {
+      s.combo = 0;
+      s.wrongCount += 1;
+      s.score -= WRONG_PENALTY;
     }
 
-    const hit = s.perfectCount + s.goodCount;
-    s.accuracy = s.totalCount === 0 ? 100 : Math.round((hit / s.totalCount) * 1000) / 10;
+    s.accuracy = s.totalCount === 0 ? 100 : Math.round((s.correctCount / s.totalCount) * 1000) / 10;
 
     this.state = { ...s };
+    this.notify();
+    return this.state;
+  }
+
+  /** Adds bonus points earned from completing a problem with no mistakes. */
+  addBonus(points: number): ScoreState {
+    this.state = { ...this.state, score: this.state.score + points };
     this.notify();
     return this.state;
   }
@@ -59,9 +60,8 @@ export class ScoreManager {
       score: 0,
       combo: 0,
       maxCombo: 0,
-      perfectCount: 0,
-      goodCount: 0,
-      missCount: 0,
+      correctCount: 0,
+      wrongCount: 0,
       totalCount: 0,
       accuracy: 100,
     };

@@ -5,6 +5,7 @@ import { TimerManager } from "@/game/TimerManager";
 import { AudioManager } from "@/game/AudioManager";
 import { SettingsManager } from "@/game/SettingsManager";
 import type {
+  DigitEntry,
   DigitProblem,
   GameConfig,
   Judgment,
@@ -12,32 +13,34 @@ import type {
   ScoreState,
 } from "@/types/game";
 
-const HIT_LINE_RATIO = 0.82;
-const SPAWN_Y_RATIO = 0.05;
+/** Last N seconds of a Time Attack run bump the digit count for extra challenge. */
+const BONUS_WINDOW_SECONDS = 10;
+/** Digits per problem stay static; input is unlimited-time (no timing judgment). */
+const NEXT_PROBLEM_DELAY_MS = 300;
 
-interface FallingNote {
-  symbol: string;
-  spawnTime: number;
-  hitTime: number;
+export interface BonusEvent {
+  points: number;
+  seconds: number;
+  timestamp: number;
 }
 
 export interface GameEngineCallbacks {
   onScoreChange?: (state: ScoreState) => void;
   onJudgment?: (event: JudgmentEvent) => void;
-  onProblemChange?: (problem: DigitProblem, digitIndex: number) => void;
-  onTick?: (secondsRemaining: number | null, elapsedSeconds: number) => void;
+  onProblemChange?: (problem: DigitProblem, digitIndex: number, entries: DigitEntry[]) => void;
+  onTick?: (secondsRemaining: number | null, elapsedSeconds: number, hps: number, bonusActive: boolean) => void;
+  onBonus?: (bonus: BonusEvent) => void;
   onGameOver?: (finalScore: ScoreState) => void;
 }
 
 /**
- * Orchestrates a single play session: generates problems via BaseConverter,
- * reads player input via InputManager, judges timing against a single
- * falling note, and reports state through callbacks. Owns the canvas
- * render loop. Contains no JSX/React.
+ * Orchestrates a single play session: as fast as possible, correctly key in
+ * the base-N digits of a randomly generated number. There is no timing
+ * window — every keypress is judged right or wrong immediately, and the
+ * player's speed is measured via combo and hits-per-second. Contains no
+ * JSX/React and no rendering; UI reads state entirely through callbacks.
  */
 export class GameEngine {
-  private canvas: HTMLCanvasElement;
-  private ctx: CanvasRenderingContext2D;
   private config: GameConfig;
   private callbacks: GameEngineCallbacks;
 
@@ -48,18 +51,16 @@ export class GameEngine {
 
   private currentProblem: DigitProblem | null = null;
   private digitIndex = 0;
-  private activeNote: FallingNote | null = null;
-  private rafId: number | null = null;
+  private entries: DigitEntry[] = [];
+  private totalHits = 0;
+  private bonusActive = false;
+  private nextProblemTimeout: ReturnType<typeof setTimeout> | null = null;
   private unsubscribeInput: (() => void) | null = null;
   private unsubscribeTick: (() => void) | null = null;
   private unsubscribeEnd: (() => void) | null = null;
   private running = false;
 
-  constructor(canvas: HTMLCanvasElement, config: GameConfig, callbacks: GameEngineCallbacks = {}) {
-    this.canvas = canvas;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) throw new Error("Canvas 2D context unavailable");
-    this.ctx = ctx;
+  constructor(config: GameConfig, callbacks: GameEngineCallbacks = {}) {
     this.config = config;
     this.callbacks = callbacks;
 
@@ -77,20 +78,17 @@ export class GameEngine {
     this.unsubscribeInput = this.inputManager.onAction((action, timestamp) =>
       this.handleAction(action, timestamp)
     );
-    this.unsubscribeTick = this.timerManager.onTick((remaining) =>
-      this.callbacks.onTick?.(remaining, this.timerManager.getElapsedSeconds())
-    );
+    this.unsubscribeTick = this.timerManager.onTick(() => this.handleTick());
     this.unsubscribeEnd = this.timerManager.onEnd(() => this.endGame());
 
     this.timerManager.start();
     this.nextProblem();
-    this.loop();
   }
 
   stop(): void {
     this.running = false;
-    if (this.rafId !== null) cancelAnimationFrame(this.rafId);
-    this.rafId = null;
+    if (this.nextProblemTimeout !== null) clearTimeout(this.nextProblemTimeout);
+    this.nextProblemTimeout = null;
     this.timerManager.stop();
     this.unsubscribeInput?.();
     this.unsubscribeTick?.();
@@ -109,6 +107,11 @@ export class GameEngine {
     this.endGame();
   }
 
+  /** Feeds a digit press from a non-keyboard source (e.g. an on-screen button). */
+  manualInput(symbol: string): void {
+    this.handleAction(symbol, performance.now());
+  }
+
   updateKeyBindings(): void {
     this.inputManager.updateBindings(SettingsManager.loadKeyBindings());
   }
@@ -121,122 +124,97 @@ export class GameEngine {
     return this.scoreManager.getState();
   }
 
-  private nextProblem(): void {
-    this.currentProblem = BaseConverter.generateProblem(this.config.base, this.config.difficulty);
-    this.digitIndex = 0;
-    this.callbacks.onProblemChange?.(this.currentProblem, this.digitIndex);
-    this.spawnNote();
+  private handleTick(): void {
+    const elapsed = this.timerManager.getElapsedSeconds();
+    const remaining = this.timerManager.getRemainingSeconds();
+    const hps = elapsed > 0.5 ? this.totalHits / elapsed : 0;
+
+    this.bonusActive =
+      this.config.mode === "timeAttack" && remaining !== null && remaining <= BONUS_WINDOW_SECONDS && remaining > 0;
+
+    this.callbacks.onTick?.(remaining, elapsed, hps, this.bonusActive);
   }
 
-  private spawnNote(): void {
-    if (!this.currentProblem) return;
+  private nextProblem(): void {
     const preset = DIFFICULTY_PRESETS[this.config.difficulty];
-    const height = this.canvas.height;
-    const travelPx = height * (HIT_LINE_RATIO - SPAWN_Y_RATIO);
-    const travelMs = (travelPx / preset.noteSpeed) * 1000;
-    const now = performance.now();
-    this.activeNote = {
-      symbol: this.currentProblem.digits[this.digitIndex],
-      spawnTime: now,
-      hitTime: now + travelMs,
-    };
+    const digitCount = this.bonusActive ? preset.bonusDigitCount : preset.digitCount;
+    this.currentProblem = BaseConverter.generateProblem(this.config.base, digitCount);
+    this.digitIndex = 0;
+    this.entries = [];
+    this.callbacks.onProblemChange?.(this.currentProblem, this.digitIndex, this.entries);
   }
 
   private handleAction(action: string, timestamp: number): void {
-    if (!this.currentProblem || !this.activeNote) return;
-    const preset = DIFFICULTY_PRESETS[this.config.difficulty];
-    const expected = this.activeNote.symbol;
-    const deltaMs = Math.abs(timestamp - this.activeNote.hitTime);
+    if (!this.currentProblem || this.digitIndex >= this.currentProblem.digits.length) return;
 
-    if (action !== expected) {
-      this.judge("miss", expected, action);
+    let digitValue: number;
+    try {
+      digitValue = BaseConverter.symbolToDigit(action);
+    } catch {
       return;
     }
+    if (digitValue >= this.config.base) return;
 
-    const perfectWindow = preset.hitWindowMs * 0.4;
-    const judgment: Judgment = deltaMs <= perfectWindow ? "perfect" : deltaMs <= preset.hitWindowMs ? "good" : "miss";
-    this.judge(judgment, expected, action);
-    if (judgment !== "miss") {
-      this.timerManager.addBonusSeconds(preset.timeBonusPerDigit / 10);
-    }
-  }
+    const expected = this.currentProblem.digits[this.digitIndex];
+    const judgment: Judgment = action === expected ? "correct" : "wrong";
 
-  private judge(judgment: Judgment, expected: string, received: string): void {
-    const state = this.scoreManager.register(judgment);
-    this.callbacks.onScoreChange?.(state);
-    this.callbacks.onJudgment?.({ judgment, expected, received, timestamp: performance.now() });
-    this.audioManager.play(judgment);
-    this.advance();
-  }
-
-  private advance(): void {
-    if (!this.currentProblem) return;
+    this.entries[this.digitIndex] = { digit: action, judgment };
     this.digitIndex += 1;
+    this.totalHits += 1;
+
+    const scoreState = this.scoreManager.register(judgment);
+    this.callbacks.onScoreChange?.(scoreState);
+    this.callbacks.onJudgment?.({
+      judgment,
+      expected,
+      received: action,
+      digitIndex: this.digitIndex - 1,
+      timestamp,
+    });
+    this.audioManager.play(judgment);
+    this.callbacks.onProblemChange?.(this.currentProblem, this.digitIndex, this.entries);
+
     if (this.digitIndex >= this.currentProblem.digits.length) {
-      this.nextProblem();
-    } else {
-      this.callbacks.onProblemChange?.(this.currentProblem, this.digitIndex);
-      this.spawnNote();
+      this.completeProblem();
     }
+  }
+
+  private completeProblem(): void {
+    if (!this.currentProblem) return;
+    const allCorrect = this.entries.every((e) => e.judgment === "correct");
+
+    if (allCorrect) {
+      const combo = this.scoreManager.getState().combo;
+      const cross = BaseConverter.countTransitions(this.currentProblem.digits);
+      const ratio = Math.floor((combo + 1) / 6);
+      const bonusPoints = ratio * 3 * (cross + 1);
+
+      let bonusSeconds = 0;
+      if (this.config.mode === "timeAttack") {
+        this.timerManager.addBonusSeconds(2);
+        bonusSeconds = 2;
+      }
+
+      if (bonusPoints > 0) {
+        const scoreState = this.scoreManager.addBonus(bonusPoints);
+        this.callbacks.onScoreChange?.(scoreState);
+        this.audioManager.play("bonus");
+      }
+
+      if (bonusPoints > 0 || bonusSeconds > 0) {
+        this.callbacks.onBonus?.({ points: bonusPoints, seconds: bonusSeconds, timestamp: performance.now() });
+      }
+    }
+
+    this.currentProblem = null;
+    this.nextProblemTimeout = setTimeout(() => {
+      if (this.running) this.nextProblem();
+    }, NEXT_PROBLEM_DELAY_MS);
   }
 
   private endGame(): void {
     this.stop();
     this.audioManager.play("gameOver");
     this.callbacks.onGameOver?.(this.scoreManager.getState());
-  }
-
-  private loop = (): void => {
-    if (!this.running) return;
-    this.checkAutoMiss();
-    this.render();
-    this.rafId = requestAnimationFrame(this.loop);
-  };
-
-  private checkAutoMiss(): void {
-    if (!this.activeNote || !this.currentProblem) return;
-    const preset = DIFFICULTY_PRESETS[this.config.difficulty];
-    const now = performance.now();
-    if (now - this.activeNote.hitTime > preset.hitWindowMs) {
-      this.judge("miss", this.activeNote.symbol, "(timeout)");
-    }
-  }
-
-  private render(): void {
-    const { ctx, canvas } = this;
-    const width = canvas.width;
-    const height = canvas.height;
-    const hitY = height * HIT_LINE_RATIO;
-
-    ctx.clearRect(0, 0, width, height);
-    ctx.fillStyle = "#0f172a";
-    ctx.fillRect(0, 0, width, height);
-
-    ctx.strokeStyle = "#f97316";
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(0, hitY);
-    ctx.lineTo(width, hitY);
-    ctx.stroke();
-
-    if (this.activeNote) {
-      const now = performance.now();
-      const totalTravelMs = this.activeNote.hitTime - this.activeNote.spawnTime;
-      const elapsed = now - this.activeNote.spawnTime;
-      const progress = totalTravelMs > 0 ? elapsed / totalTravelMs : 1;
-      const y = height * SPAWN_Y_RATIO + progress * (hitY - height * SPAWN_Y_RATIO);
-      const x = width / 2;
-
-      ctx.fillStyle = "#38bdf8";
-      ctx.beginPath();
-      ctx.arc(x, y, 26, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = "#0f172a";
-      ctx.font = "bold 26px sans-serif";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(this.activeNote.symbol, x, y);
-    }
   }
 }

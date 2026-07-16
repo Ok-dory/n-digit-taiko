@@ -3,10 +3,10 @@ import type { Base, DifficultySettings, Difficulty, DigitProblem } from "@/types
 const DIGIT_SYMBOLS = "0123456789ABCDEF";
 
 export const DIFFICULTY_PRESETS: Record<Difficulty, DifficultySettings> = {
-  easy: { minDigits: 2, maxDigits: 3, noteSpeed: 120, hitWindowMs: 1200, timeBonusPerDigit: 1.5 },
-  medium: { minDigits: 3, maxDigits: 4, noteSpeed: 180, hitWindowMs: 900, timeBonusPerDigit: 1 },
-  hard: { minDigits: 4, maxDigits: 5, noteSpeed: 260, hitWindowMs: 650, timeBonusPerDigit: 0.75 },
-  insane: { minDigits: 5, maxDigits: 7, noteSpeed: 360, hitWindowMs: 450, timeBonusPerDigit: 0.5 },
+  easy: { digitCount: 3, bonusDigitCount: 4 },
+  medium: { digitCount: 4, bonusDigitCount: 5 },
+  hard: { digitCount: 5, bonusDigitCount: 6 },
+  insane: { digitCount: 6, bonusDigitCount: 7 },
 };
 
 /**
@@ -52,10 +52,7 @@ export class BaseConverter {
     return min + Math.floor(Math.random() * (max - min + 1));
   }
 
-  static generateProblem(base: Base, difficulty: Difficulty): DigitProblem {
-    const preset = DIFFICULTY_PRESETS[difficulty];
-    const digitCount =
-      preset.minDigits + Math.floor(Math.random() * (preset.maxDigits - preset.minDigits + 1));
+  static generateProblem(base: Base, digitCount: number): DigitProblem {
     const decimalValue = BaseConverter.randomValueForDigitCount(base, digitCount);
     return {
       id: crypto.randomUUID(),
@@ -63,5 +60,14 @@ export class BaseConverter {
       decimalValue,
       digits: BaseConverter.toBaseDigits(decimalValue, base),
     };
+  }
+
+  /** Number of adjacent digit pairs that differ, used for the completion-bonus formula. */
+  static countTransitions(digits: string[]): number {
+    let count = 0;
+    for (let i = 0; i < digits.length - 1; i++) {
+      if (digits[i] !== digits[i + 1]) count++;
+    }
+    return count;
   }
 }

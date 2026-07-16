@@ -5,6 +5,7 @@ create table if not exists ranking (
   score integer not null,
   accuracy numeric(5, 1) not null,
   combo integer not null,
+  hps numeric(6, 2) not null default 0,
   base integer not null check (base between 2 and 16),
   difficulty text not null check (difficulty in ('easy', 'medium', 'hard', 'insane')),
   created_at timestamptz not null default now()

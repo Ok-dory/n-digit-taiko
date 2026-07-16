@@ -19,14 +19,14 @@ const DIFFICULTIES: { value: Difficulty; label: string }[] = [
   { value: "insane", label: "Insane" },
 ];
 
-const DURATIONS: TimeAttackDuration[] = [60, 90, 120];
+const DURATIONS: TimeAttackDuration[] = [30, 60, 90, 120];
 
 export default function Home() {
   const router = useRouter();
   const [mode, setMode] = useState<GameMode>("practice");
   const [base, setBase] = useState<Base>(2);
   const [difficulty, setDifficulty] = useState<Difficulty>("easy");
-  const [duration, setDuration] = useState<TimeAttackDuration>(60);
+  const [duration, setDuration] = useState<TimeAttackDuration>(30);
 
   const startGame = () => {
     const params = configToSearchParams(
@@ -39,7 +39,7 @@ export default function Home() {
     <main className="flex flex-1 flex-col items-center justify-center gap-10 px-6 py-12">
       <div className="text-center">
         <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">N진수 태고</h1>
-        <p className="mt-2 text-slate-400">떨어지는 숫자를 맞는 진법 키로 입력하세요.</p>
+        <p className="mt-2 text-slate-400">숫자가 나오면 그 진법 조합을 최대한 빠르고 정확하게 완성하세요.</p>
       </div>
 
       <div className="w-full max-w-md space-y-6 rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
@@ -63,7 +63,7 @@ export default function Home() {
         {mode === "timeAttack" && (
           <section>
             <h2 className="mb-2 text-sm font-semibold text-slate-400">제한시간</h2>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-4 gap-2">
               {DURATIONS.map((d) => (
                 <button
                   key={d}

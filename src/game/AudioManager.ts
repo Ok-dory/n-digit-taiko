@@ -1,13 +1,12 @@
 import { Howl } from "howler";
 import type { Judgment } from "@/types/game";
 
-export type SfxKey = Judgment | "combo" | "gameOver";
+export type SfxKey = Judgment | "bonus" | "gameOver";
 
 const SFX_SOURCES: Record<SfxKey, string> = {
-  perfect: "/sfx/perfect.mp3",
-  good: "/sfx/good.mp3",
-  miss: "/sfx/miss.mp3",
-  combo: "/sfx/combo.mp3",
+  correct: "/sfx/correct.mp3",
+  wrong: "/sfx/wrong.mp3",
+  bonus: "/sfx/bonus.mp3",
   gameOver: "/sfx/game-over.mp3",
 };
 

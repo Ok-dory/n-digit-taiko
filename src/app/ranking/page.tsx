@@ -39,6 +39,7 @@ export default function RankingPage() {
               <th className="px-3 py-2 text-right">점수</th>
               <th className="px-3 py-2 text-right">정확도</th>
               <th className="px-3 py-2 text-right">최대콤보</th>
+              <th className="px-3 py-2 text-right">HPS</th>
               <th className="px-3 py-2 text-right">날짜</th>
             </tr>
           </thead>
@@ -50,6 +51,7 @@ export default function RankingPage() {
                 <td className="px-3 py-2 text-right font-mono">{entry.score.toLocaleString()}</td>
                 <td className="px-3 py-2 text-right font-mono">{entry.accuracy}%</td>
                 <td className="px-3 py-2 text-right font-mono">{entry.combo}</td>
+                <td className="px-3 py-2 text-right font-mono">{entry.hps?.toFixed(1) ?? "-"}</td>
                 <td className="px-3 py-2 text-right text-slate-500">
                   {entry.created_at ? new Date(entry.created_at).toLocaleDateString() : "-"}
                 </td>

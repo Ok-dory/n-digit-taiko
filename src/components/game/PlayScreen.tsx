@@ -4,20 +4,23 @@ import Link from "next/link";
 import { useGameEngine } from "@/hooks/useGameEngine";
 import { HUD } from "@/components/game/HUD";
 import { DigitProgress } from "@/components/game/DigitProgress";
-import { JudgmentFlash } from "@/components/game/JudgmentFlash";
+import { DigitPad } from "@/components/game/DigitPad";
+import { BonusFlash } from "@/components/game/BonusFlash";
 import { GameOverOverlay } from "@/components/game/GameOverOverlay";
 import type { GameConfig } from "@/types/game";
 
 export function PlayScreen({ config }: { config: GameConfig }) {
   const {
-    canvasRef,
     scoreState,
     problem,
-    digitIndex,
-    lastJudgment,
+    entries,
+    lastBonus,
     secondsRemaining,
     elapsedSeconds,
+    hps,
+    bonusActive,
     isGameOver,
+    pressDigit,
     endSession,
   } = useGameEngine(config);
   const canEndManually = config.mode === "practice" || config.mode === "endless";
@@ -38,13 +41,31 @@ export function PlayScreen({ config }: { config: GameConfig }) {
         )}
       </div>
 
-      <HUD scoreState={scoreState} base={config.base} secondsRemaining={secondsRemaining} elapsedSeconds={elapsedSeconds} />
-      <DigitProgress problem={problem} digitIndex={digitIndex} />
+      <HUD
+        scoreState={scoreState}
+        base={config.base}
+        secondsRemaining={secondsRemaining}
+        elapsedSeconds={elapsedSeconds}
+        hps={hps}
+        bonusActive={bonusActive}
+      />
 
-      <div className="relative mx-4 mb-4 flex-1 overflow-hidden rounded-2xl border border-slate-800">
-        <canvas ref={canvasRef} className="h-full w-full" />
-        <JudgmentFlash event={lastJudgment} />
-        {isGameOver && <GameOverOverlay scoreState={scoreState} base={config.base} difficulty={config.difficulty} />}
+      <div className="relative mx-4 mb-4 flex flex-1 flex-col justify-between overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/30">
+        <div className="flex flex-1 flex-col items-center justify-center gap-4">
+          {problem && (
+            <div className="font-mono text-6xl font-extrabold text-slate-100 sm:text-7xl">
+              {problem.decimalValue}
+            </div>
+          )}
+          <DigitProgress problem={problem} entries={entries} />
+        </div>
+
+        <DigitPad base={config.base} onPress={pressDigit} />
+
+        <BonusFlash bonus={lastBonus} />
+        {isGameOver && (
+          <GameOverOverlay scoreState={scoreState} base={config.base} difficulty={config.difficulty} hps={hps} />
+        )}
       </div>
     </main>
   );

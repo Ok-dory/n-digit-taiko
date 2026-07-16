@@ -42,7 +42,7 @@ export class RankingManager {
     if (!supabase) return null;
     const { data, error } = await supabase
       .from(RANKING_TABLE)
-      .select("score, accuracy, combo")
+      .select("score, accuracy, combo, hps")
       .eq("player_name", playerName);
     if (error || !data || data.length === 0) return null;
 
@@ -50,7 +50,8 @@ export class RankingManager {
     const averageAccuracy = data.reduce((sum, r) => sum + r.accuracy, 0) / totalPlays;
     const bestScore = Math.max(...data.map((r) => r.score));
     const averageCombo = data.reduce((sum, r) => sum + r.combo, 0) / totalPlays;
+    const averageHps = data.reduce((sum, r) => sum + (r.hps ?? 0), 0) / totalPlays;
 
-    return { averageAccuracy, bestScore, totalPlays, averageCombo };
+    return { averageAccuracy, bestScore, totalPlays, averageCombo, averageHps };
   }
 }

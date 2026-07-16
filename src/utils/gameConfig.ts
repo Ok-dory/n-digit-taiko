@@ -1,8 +1,8 @@
 import type { Base, Difficulty, GameConfig, GameMode, TimeAttackDuration } from "@/types/game";
 
-const VALID_MODES: GameMode[] = ["practice", "timeAttack", "endless", "binary", "nbase"];
+const VALID_MODES: GameMode[] = ["practice", "timeAttack", "endless"];
 const VALID_DIFFICULTIES: Difficulty[] = ["easy", "medium", "hard", "insane"];
-const VALID_DURATIONS: TimeAttackDuration[] = [60, 90, 120];
+const VALID_DURATIONS: TimeAttackDuration[] = [30, 60, 90, 120];
 
 export function configToSearchParams(config: GameConfig): URLSearchParams {
   const params = new URLSearchParams({
