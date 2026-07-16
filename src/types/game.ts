@@ -71,3 +71,13 @@ export interface PlayerStats {
   averageCombo: number;
   averageHps: number;
 }
+
+/**
+ * A single base's leaderboard. `allTimeBest` is the highest score ever
+ * recorded for that base and stays pinned at rank 1 even after it falls
+ * out of the rolling 7-day `weekly` window.
+ */
+export interface RankingBoard {
+  allTimeBest: RankingEntry | null;
+  weekly: RankingEntry[];
+}

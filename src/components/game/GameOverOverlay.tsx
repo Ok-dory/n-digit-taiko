@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { RankingManager } from "@/game/RankingManager";
-import type { Base, RankingEntry, ScoreState } from "@/types/game";
+import type { Base, RankingBoard, ScoreState } from "@/types/game";
 
 interface GameOverOverlayProps {
   stage: "summary" | "ranking";
@@ -40,30 +40,39 @@ export function GameOverOverlay({ stage, scoreState, base, hps }: GameOverOverla
 
 function RankingStage({ base }: { base: Base }) {
   const router = useRouter();
-  const [entries, setEntries] = useState<RankingEntry[] | null>(null);
+  const [board, setBoard] = useState<RankingBoard | null>(null);
 
   useEffect(() => {
-    RankingManager.getWeeklyTop(10).then(setEntries);
-  }, []);
+    RankingManager.getBoard(base, 10).then(setBoard);
+  }, [base]);
+
+  const rows = board
+    ? [
+        ...(board.allTimeBest ? [{ ...board.allTimeBest, isAllTime: true }] : []),
+        ...board.weekly.map((e) => ({ ...e, isAllTime: false })),
+      ]
+    : [];
 
   return (
     <div className="w-full max-w-md space-y-4 rounded-2xl border border-slate-800 bg-slate-900 p-6 text-center">
-      <h2 className="text-xl font-bold text-orange-400">-- RANKING --</h2>
+      <h2 className="text-xl font-bold text-orange-400">-- RANKING ({base}진수) --</h2>
 
-      {entries === null && <p className="text-sm text-slate-500">불러오는 중...</p>}
+      {board === null && <p className="text-sm text-slate-500">불러오는 중...</p>}
 
-      {entries !== null && entries.length === 0 && (
+      {board !== null && rows.length === 0 && (
         <p className="text-sm text-slate-500">아직 기록이 없습니다. 첫 기록의 주인공이 되어보세요!</p>
       )}
 
-      {entries !== null && entries.length > 0 && (
+      {board !== null && rows.length > 0 && (
         <ol className="space-y-1 text-left text-sm">
-          {entries.map((entry, i) => (
+          {rows.map((entry, i) => (
             <li
               key={entry.id ?? i}
-              className="flex items-center justify-between gap-2 rounded-lg bg-slate-800/60 px-3 py-1.5 font-mono"
+              className={`flex items-center justify-between gap-2 rounded-lg px-3 py-1.5 font-mono ${
+                entry.isAllTime ? "bg-orange-500/10" : "bg-slate-800/60"
+              }`}
             >
-              <span className="text-orange-400">{i + 1}.</span>
+              <span className="text-orange-400">{entry.isAllTime ? "🏆" : `${i + 1}.`}</span>
               <span className="flex-1 truncate text-left">{entry.player_name}</span>
               <span>{entry.score.toLocaleString()}점</span>
               <span className="text-slate-400">{entry.accuracy}%</span>
@@ -81,7 +90,6 @@ function RankingStage({ base }: { base: Base }) {
           전체 랭킹 보기
         </Link>
       </div>
-      <p className="text-xs text-slate-600">진법: {base}진수</p>
     </div>
   );
 }

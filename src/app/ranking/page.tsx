@@ -3,14 +3,27 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { RankingManager } from "@/game/RankingManager";
-import type { RankingEntry } from "@/types/game";
+import type { Base, RankingBoard } from "@/types/game";
+
+const BASES: Base[] = Array.from({ length: 15 }, (_, i) => (i + 2) as Base);
 
 export default function RankingPage() {
-  const [entries, setEntries] = useState<RankingEntry[] | null>(null);
+  const [base, setBase] = useState<Base>(2);
+  const [board, setBoard] = useState<RankingBoard | null>(null);
 
   useEffect(() => {
-    RankingManager.getWeeklyTop(20).then(setEntries);
-  }, []);
+    // Reset to the loading state whenever the selected base changes.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setBoard(null);
+    RankingManager.getBoard(base, 20).then(setBoard);
+  }, [base]);
+
+  const rows = board
+    ? [
+        ...(board.allTimeBest ? [{ ...board.allTimeBest, isAllTime: true }] : []),
+        ...board.weekly.map((e) => ({ ...e, isAllTime: false })),
+      ]
+    : [];
 
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-6 py-10">
@@ -18,19 +31,37 @@ export default function RankingPage() {
         <Link href="/" className="text-sm text-slate-500 hover:text-orange-400">
           ← 홈
         </Link>
-        <h1 className="text-xl font-bold">주간 랭킹 (최근 7일)</h1>
+        <h1 className="text-xl font-bold">랭킹</h1>
         <div className="w-10" />
       </div>
 
-      {entries === null && <p className="text-center text-slate-500">불러오는 중...</p>}
+      <div className="flex justify-center">
+        <select
+          value={base}
+          onChange={(e) => setBase(Number(e.target.value) as Base)}
+          className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-sm outline-none focus:border-orange-500"
+        >
+          {BASES.map((b) => (
+            <option key={b} value={b}>
+              {b}진수
+            </option>
+          ))}
+        </select>
+      </div>
 
-      {entries !== null && entries.length === 0 && (
+      <p className="text-center text-xs text-slate-500">
+        1위는 역대 최고 기록으로 계속 유지되고, 나머지는 최근 7일 기록입니다.
+      </p>
+
+      {board === null && <p className="text-center text-slate-500">불러오는 중...</p>}
+
+      {board !== null && rows.length === 0 && (
         <p className="text-center text-slate-500">
-          아직 기록이 없습니다. Supabase가 설정되지 않았다면 .env.local에 환경변수를 추가하세요.
+          아직 {base}진수 기록이 없습니다. Supabase가 설정되지 않았다면 .env.local에 환경변수를 추가하세요.
         </p>
       )}
 
-      {entries !== null && entries.length > 0 && (
+      {board !== null && rows.length > 0 && (
         <table className="w-full overflow-hidden rounded-xl border border-slate-800 text-sm">
           <thead className="bg-slate-900 text-slate-400">
             <tr>
@@ -44,9 +75,14 @@ export default function RankingPage() {
             </tr>
           </thead>
           <tbody>
-            {entries.map((entry, i) => (
-              <tr key={entry.id ?? i} className="border-t border-slate-800">
-                <td className="px-3 py-2 font-mono text-orange-400">{i + 1}</td>
+            {rows.map((entry, i) => (
+              <tr
+                key={entry.id ?? i}
+                className={`border-t border-slate-800 ${entry.isAllTime ? "bg-orange-500/10" : ""}`}
+              >
+                <td className="px-3 py-2 font-mono text-orange-400">
+                  {entry.isAllTime ? "🏆" : i + 1}
+                </td>
                 <td className="px-3 py-2">{entry.player_name}</td>
                 <td className="px-3 py-2 text-right font-mono">{entry.score.toLocaleString()}</td>
                 <td className="px-3 py-2 text-right font-mono">{entry.accuracy}%</td>

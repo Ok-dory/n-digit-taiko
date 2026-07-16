@@ -1,6 +1,6 @@
 import { getSupabaseClient } from "@/utils/supabaseClient";
 import { LocalRankingStore } from "@/game/LocalRankingStore";
-import type { PlayerStats, RankingEntry } from "@/types/game";
+import type { Base, PlayerStats, RankingBoard, RankingEntry } from "@/types/game";
 
 const RANKING_TABLE = "ranking";
 const RANKING_WINDOW_DAYS = 7;
@@ -13,9 +13,9 @@ function sevenDaysAgoIso(): string {
 }
 
 /**
- * Reads/writes the weekly ranking table. Uses Supabase when configured
- * (shared, cross-device leaderboard); otherwise falls back to a
- * localStorage-backed store so the leaderboard works with zero setup,
+ * Reads/writes the ranking table, one board per base. Uses Supabase when
+ * configured (shared, cross-device leaderboard); otherwise falls back to
+ * a localStorage-backed store so the leaderboard works with zero setup,
  * matching the original game's local rankings.json file.
  */
 export class RankingManager {
@@ -29,18 +29,36 @@ export class RankingManager {
     return { error: error?.message ?? null };
   }
 
-  static async getWeeklyTop(limit: number = TOP_N): Promise<RankingEntry[]> {
+  /**
+   * Rank 1 is the all-time best for this base (never expires); the rest
+   * is the current week's top scores, re-fetched every 7-day window.
+   */
+  static async getBoard(base: Base, limit: number = TOP_N): Promise<RankingBoard> {
     const supabase = getSupabaseClient();
-    if (!supabase) return LocalRankingStore.getWeeklyTop(limit);
+    if (!supabase) return LocalRankingStore.getBoard(base, limit);
 
-    const { data, error } = await supabase
-      .from(RANKING_TABLE)
-      .select("*")
-      .gte("created_at", sevenDaysAgoIso())
-      .order("score", { ascending: false })
-      .limit(limit);
-    if (error) return [];
-    return data as RankingEntry[];
+    const [bestResult, weeklyResult] = await Promise.all([
+      supabase
+        .from(RANKING_TABLE)
+        .select("*")
+        .eq("base", base)
+        .order("score", { ascending: false })
+        .limit(1),
+      supabase
+        .from(RANKING_TABLE)
+        .select("*")
+        .eq("base", base)
+        .gte("created_at", sevenDaysAgoIso())
+        .order("score", { ascending: false })
+        .limit(limit),
+    ]);
+
+    const allTimeBest = (bestResult.data?.[0] as RankingEntry | undefined) ?? null;
+    const weekly = bestResult.error || weeklyResult.error
+      ? []
+      : (weeklyResult.data as RankingEntry[]).filter((e) => e.id !== allTimeBest?.id);
+
+    return { allTimeBest, weekly };
   }
 
   static async getPlayerStats(playerName: string): Promise<PlayerStats | null> {

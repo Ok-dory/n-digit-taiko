@@ -10,9 +10,10 @@ create table if not exists ranking (
   created_at timestamptz not null default now()
 );
 
--- Weekly leaderboard queries always filter on created_at, so index it.
-create index if not exists ranking_created_at_idx on ranking (created_at desc);
-create index if not exists ranking_score_idx on ranking (score desc);
+-- Boards are per-base: the weekly list filters on (base, created_at) and
+-- the all-time-best row filters on (base, score).
+create index if not exists ranking_base_created_at_idx on ranking (base, created_at desc);
+create index if not exists ranking_base_score_idx on ranking (base, score desc);
 create index if not exists ranking_player_name_idx on ranking (player_name);
 
 alter table ranking enable row level security;

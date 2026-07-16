@@ -1,4 +1,4 @@
-import type { RankingEntry } from "@/types/game";
+import type { Base, RankingBoard, RankingEntry } from "@/types/game";
 
 const STORAGE_KEY = "n-digit-taiko:local-rankings";
 const MAX_STORED_ENTRIES = 200;
@@ -32,12 +32,25 @@ export class LocalRankingStore {
     writeAll(entries);
   }
 
-  static getWeeklyTop(limit: number): RankingEntry[] {
+  /**
+   * Rank 1 is the all-time best for this base (never expires); the rest
+   * is the current week's top scores, re-fetched every 7-day window.
+   */
+  static getBoard(base: Base, limit: number): RankingBoard {
+    const forBase = readAll().filter((e) => e.base === base);
+    const allTimeBest = forBase.reduce<RankingEntry | null>(
+      (best, e) => (!best || e.score > best.score ? e : best),
+      null
+    );
+
     const cutoff = Date.now() - RANKING_WINDOW_DAYS * 24 * 60 * 60 * 1000;
-    return readAll()
+    const weekly = forBase
+      .filter((e) => e.id !== allTimeBest?.id)
       .filter((e) => (e.created_at ? new Date(e.created_at).getTime() >= cutoff : true))
       .sort((a, b) => b.score - a.score || b.accuracy - a.accuracy)
       .slice(0, limit);
+
+    return { allTimeBest, weekly };
   }
 
   static getByPlayer(playerName: string): RankingEntry[] {
