@@ -1,0 +1,23 @@
+-- Run this in the Supabase SQL editor (or via `supabase db push`).
+create table if not exists ranking (
+  id uuid primary key default gen_random_uuid(),
+  player_name text not null,
+  score integer not null,
+  accuracy numeric(5, 1) not null,
+  combo integer not null,
+  base integer not null check (base between 2 and 16),
+  difficulty text not null check (difficulty in ('easy', 'medium', 'hard', 'insane')),
+  created_at timestamptz not null default now()
+);
+
+-- Weekly leaderboard queries always filter on created_at, so index it.
+create index if not exists ranking_created_at_idx on ranking (created_at desc);
+create index if not exists ranking_score_idx on ranking (score desc);
+create index if not exists ranking_player_name_idx on ranking (player_name);
+
+alter table ranking enable row level security;
+
+-- Anyone can read the leaderboard; anyone can submit a score.
+-- Tighten this (e.g. require auth) before launch if abuse becomes a concern.
+create policy "ranking_select_all" on ranking for select using (true);
+create policy "ranking_insert_all" on ranking for insert with check (true);

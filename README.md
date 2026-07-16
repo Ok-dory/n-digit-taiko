@@ -1,36 +1,49 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# N진수 태고 (N-Base Taiko)
 
-## Getting Started
+Falling-note rhythm game where digits of a random number (base 2–16, chosen at game start) fall
+one at a time and you type them in order. Built as a from-scratch web redesign of an earlier
+Python/Pygame "Binary Taiko" prototype — not a port.
 
-First, run the development server:
+## Stack
+
+- Next.js (App Router) + TypeScript + Tailwind CSS
+- Canvas API for the falling-note rendering
+- Framer Motion for judgment/UI animation
+- Howler.js for sound effects
+- Supabase (Postgres) for the weekly ranking board
+- Deploys to Vercel
+
+## Architecture
+
+Game logic lives entirely under `src/game/` as plain TypeScript classes with no React
+dependency; components under `src/components` and `src/app` are UI-only and talk to the engine
+through the hooks in `src/hooks/`.
+
+- `BaseConverter` — decimal ⇄ arbitrary-base (2–16) conversion, problem generation
+- `InputManager` / `KeyboardInput` — pluggable input sources (`InputSource` interface); adding
+  Gamepad/MIDI/Arduino support later means writing a new `InputSource`, no engine changes
+- `SettingsManager` — key-binding persistence in `localStorage`
+- `TimerManager`, `ScoreManager`, `AudioManager` — countdown/elapsed time, score/combo/accuracy,
+  sfx playback
+- `GameEngine` — orchestrates the above, owns the canvas render loop and judgment logic
+- `RankingManager` — Supabase reads/writes for the 7-day rolling leaderboard
+
+## Local setup
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Ranking and stats pages work without Supabase configured (they show an empty/graceful state).
+To enable them, copy `.env.local.example` to `.env.local`, create a Supabase project, run
+`supabase/schema.sql` in its SQL editor, and fill in the two `NEXT_PUBLIC_SUPABASE_*` values.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Sound effects are loaded from `/public/sfx/*.mp3` (perfect, good, miss, combo, game-over) but no
+audio files are bundled — drop your own in and `AudioManager` will pick them up; missing files
+fail silently so gameplay isn't blocked.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Deploy
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Push to GitHub and import the repo on Vercel, or run `vercel deploy` from the project root.
+Remember to set the Supabase env vars in the Vercel project settings too.
