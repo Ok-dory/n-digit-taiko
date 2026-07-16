@@ -1,6 +1,8 @@
 import {
   addDoc,
   collection,
+  deleteDoc,
+  doc,
   getDocs,
   limit as fsLimit,
   orderBy,
@@ -24,6 +26,7 @@ const TOP_N = 20;
  * fetch bounded even if a base gets a busy week.
  */
 const WEEKLY_FETCH_CAP = 200;
+const ADMIN_FETCH_CAP = 200;
 
 function sevenDaysAgo(): Date {
   const cutoff = new Date();
@@ -109,6 +112,36 @@ export class RankingManager {
       return { allTimeBest, weekly };
     } catch {
       return { allTimeBest: null, weekly: [] };
+    }
+  }
+
+  /** Most recent entries for moderation — optionally scoped to one base, newest first. */
+  static async listForAdmin(base: Base | null): Promise<RankingEntry[]> {
+    const db = getFirestoreDb();
+    if (!db) return LocalRankingStore.getRecent(base, ADMIN_FETCH_CAP);
+
+    const constraints = base !== null ? [where("base", "==", base)] : [];
+    const q = query(
+      collection(db, RANKING_COLLECTION),
+      ...constraints,
+      orderBy("created_at", "desc"),
+      fsLimit(ADMIN_FETCH_CAP)
+    );
+    const snap = await getDocs(q);
+    return snap.docs.map(docToEntry);
+  }
+
+  static async deleteEntry(id: string): Promise<{ error: string | null }> {
+    const db = getFirestoreDb();
+    if (!db) {
+      LocalRankingStore.delete(id);
+      return { error: null };
+    }
+    try {
+      await deleteDoc(doc(db, RANKING_COLLECTION, id));
+      return { error: null };
+    } catch (e) {
+      return { error: e instanceof Error ? e.message : "Unknown error" };
     }
   }
 

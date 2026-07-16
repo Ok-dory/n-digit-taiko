@@ -1,17 +1,18 @@
 # N진수 태고 (N-Base Taiko)
 
-Falling-note rhythm game where digits of a random number (base 2–16, chosen at game start) fall
-one at a time and you type them in order. Built as a from-scratch web redesign of an earlier
-Python/Pygame "Binary Taiko" prototype — not a port.
+Reaction-speed game: a random number appears (base 2–16, chosen at game start) and you key in
+its digits, in order, as fast and accurately as possible — no timing window, just right or wrong.
+Built as a from-scratch web redesign of an earlier Python/Pygame "Binary Taiko" prototype that
+worked the same way (two-button binary version); this generalizes it to any base and adds a
+web UI — not a port.
 
 ## Stack
 
 - Next.js (App Router) + TypeScript + Tailwind CSS
-- Canvas API for the falling-note rendering
-- Framer Motion for judgment/UI animation
+- Framer Motion for bonus/UI animation
 - Howler.js for sound effects
 - Firebase Firestore for the ranking board (one leaderboard per base, plus a
-  persistent all-time-best pinned at rank 1)
+  persistent all-time-best pinned at rank 1) and Firebase Auth for admin moderation
 - Deploys to Vercel
 
 ## Architecture
@@ -24,9 +25,10 @@ through the hooks in `src/hooks/`.
 - `InputManager` / `KeyboardInput` — pluggable input sources (`InputSource` interface); adding
   Gamepad/MIDI/Arduino support later means writing a new `InputSource`, no engine changes
 - `SettingsManager` — key-binding persistence in `localStorage`
-- `TimerManager`, `ScoreManager`, `AudioManager` — countdown/elapsed time, score/combo/accuracy,
-  sfx playback
-- `GameEngine` — orchestrates the above, owns the canvas render loop and judgment logic
+- `TimerManager`, `ScoreManager`, `AudioManager` — 30-second countdown, score/combo/accuracy
+  (+10 correct / −5 wrong, combo-and-digit-transition completion bonus), sfx playback
+- `GameEngine` — orchestrates the above and drives the round; no rendering, UI reads its state
+  entirely through callbacks
 - `RankingManager` — Firestore reads/writes, one board per base with a persistent
   all-time-best plus a 7-day rolling window; falls back to `LocalRankingStore`
   (localStorage) when Firebase isn't configured
@@ -50,7 +52,16 @@ backed by localStorage). To enable a shared cross-device leaderboard:
 4. Copy `.env.local.example` to `.env.local` and fill in the six `NEXT_PUBLIC_FIREBASE_*` values
    from Project settings → General → Your apps → SDK setup and configuration.
 
-Sound effects are loaded from `/public/sfx/*.mp3` (perfect, good, miss, combo, game-over) but no
+### Admin ranking moderation
+
+`/admin` lets a single authorized account delete inappropriate ranking entries.
+
+1. In the Firebase console, enable **Authentication → Sign-in method → Email/Password**.
+2. Under **Authentication → Users**, manually add the one admin account (there's no public
+   sign-up form in the app). The Firestore rules only grant delete access to that exact email.
+3. Sign in at `/admin` with that account to browse and delete entries per base.
+
+Sound effects are loaded from `/public/sfx/*.mp3` (correct, wrong, bonus, game-over) but no
 audio files are bundled — drop your own in and `AudioManager` will pick them up; missing files
 fail silently so gameplay isn't blocked.
 

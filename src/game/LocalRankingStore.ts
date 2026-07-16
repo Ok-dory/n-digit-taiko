@@ -56,4 +56,16 @@ export class LocalRankingStore {
   static getByPlayer(playerName: string): RankingEntry[] {
     return readAll().filter((e) => e.player_name === playerName);
   }
+
+  /** Most recent entries for moderation — optionally scoped to one base, newest first. */
+  static getRecent(base: Base | null, limit: number): RankingEntry[] {
+    return readAll()
+      .filter((e) => base === null || e.base === base)
+      .sort((a, b) => (b.created_at ?? "").localeCompare(a.created_at ?? ""))
+      .slice(0, limit);
+  }
+
+  static delete(id: string): void {
+    writeAll(readAll().filter((e) => e.id !== id));
+  }
 }

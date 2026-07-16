@@ -1,15 +1,17 @@
 rules_version = '2';
 
 // Paste this into the Firebase Console: Firestore Database > Rules.
-// Anyone can read the leaderboard; anyone can submit a score; nothing can
-// be edited or deleted client-side. Tighten this (e.g. require auth,
-// validate score bounds) before launch if abuse becomes a concern.
+// Anyone can read the leaderboard and submit a score. Only the one admin
+// account (created manually in Authentication > Users, no public sign-up
+// in the app) can delete entries, for moderating inappropriate names.
 service cloud.firestore {
   match /databases/{database}/documents {
     match /ranking/{entryId} {
       allow read: if true;
       allow create: if true;
-      allow update, delete: if false;
+      allow update: if false;
+      allow delete: if request.auth != null
+        && request.auth.token.email == 'zerg9021@gmail.com';
     }
   }
 }

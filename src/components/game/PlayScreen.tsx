@@ -7,6 +7,7 @@ import { RankingManager } from "@/game/RankingManager";
 import { HUD } from "@/components/game/HUD";
 import { DigitProgress } from "@/components/game/DigitProgress";
 import { DigitPad } from "@/components/game/DigitPad";
+import { PlaceValueHelper } from "@/components/game/PlaceValueHelper";
 import { BonusFlash } from "@/components/game/BonusFlash";
 import { CountdownOverlay } from "@/components/game/CountdownOverlay";
 import { GameOverOverlay } from "@/components/game/GameOverOverlay";
@@ -40,6 +41,7 @@ function ActiveGame({ base, playerName }: { base: Base; playerName: string }) {
   const {
     scoreState,
     problem,
+    digitIndex,
     entries,
     lastBonus,
     secondsRemaining,
@@ -78,14 +80,36 @@ function ActiveGame({ base, playerName }: { base: Base; playerName: string }) {
         bonusActive={bonusActive}
       />
 
-      <div className="flex flex-1 flex-col items-center justify-center gap-4">
-        {problem && (
-          <div className="font-mono text-6xl font-extrabold text-slate-100 sm:text-7xl">{problem.decimalValue}</div>
-        )}
-        <DigitProgress problem={problem} entries={entries} />
-      </div>
+      <div className="flex flex-1 flex-col lg:flex-row lg:gap-4 lg:px-4">
+        <div className="flex flex-1 flex-col">
+          <div className="flex flex-1 flex-col items-center justify-center gap-4">
+            {problem && (
+              <div className="font-mono text-6xl font-extrabold text-slate-100 sm:text-7xl">
+                {problem.decimalValue}
+              </div>
+            )}
+            <DigitProgress problem={problem} entries={entries} />
+          </div>
 
-      <DigitPad base={base} onPress={pressDigit} />
+          <PlaceValueHelper
+            base={base}
+            problem={problem}
+            digitIndex={digitIndex}
+            variant="inline"
+            className="lg:hidden"
+          />
+
+          <DigitPad base={base} onPress={pressDigit} />
+        </div>
+
+        <PlaceValueHelper
+          base={base}
+          problem={problem}
+          digitIndex={digitIndex}
+          variant="side"
+          className="hidden lg:block lg:my-4"
+        />
+      </div>
 
       <BonusFlash bonus={lastBonus} />
       {isGameOver && (
