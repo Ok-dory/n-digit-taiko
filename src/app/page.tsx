@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { Base } from "@/types/game";
 import { SettingsManager } from "@/game/SettingsManager";
+import { useIsTouchDevice } from "@/hooks/useIsTouchDevice";
 
 export default function Home() {
   const router = useRouter();
+  const isTouch = useIsTouchDevice();
   const [name, setName] = useState("");
   const [base, setBase] = useState<Base>(2);
 
@@ -78,9 +80,11 @@ export default function Home() {
         <Link href="/stats" className="hover:text-orange-400">
           통계
         </Link>
-        <Link href="/settings" className="hover:text-orange-400">
-          키 설정
-        </Link>
+        {!isTouch && (
+          <Link href="/settings" className="hover:text-orange-400">
+            키 설정
+          </Link>
+        )}
       </nav>
     </main>
   );

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -15,6 +15,15 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "N-Base Taiko",
   description: "Type falling digits in any base from 2 to 16, rhythm-game style.",
+};
+
+// Disables pinch/double-tap zoom so mobile taps register immediately
+// instead of waiting for the browser's zoom-gesture detection delay.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({

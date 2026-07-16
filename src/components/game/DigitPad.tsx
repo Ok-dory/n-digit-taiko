@@ -26,7 +26,10 @@ export function DigitPad({ base, onPress }: DigitPadProps) {
       {symbols.map((symbol) => (
         <button
           key={symbol}
-          onClick={() => onPress(symbol)}
+          onPointerDown={(e) => {
+            e.preventDefault();
+            onPress(symbol);
+          }}
           className="flex flex-col items-center rounded-xl border border-slate-800 bg-slate-900/80 py-3 transition-colors active:bg-orange-500"
         >
           <span className="font-mono text-xl font-bold text-slate-100">{symbol}</span>

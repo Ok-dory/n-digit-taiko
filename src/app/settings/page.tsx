@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useKeyBindings } from "@/hooks/useKeyBindings";
+import { useIsTouchDevice } from "@/hooks/useIsTouchDevice";
 
 const DIGIT_SYMBOLS = "0123456789ABCDEF".split("");
 
@@ -14,6 +15,7 @@ function keyLabel(code: string): string {
 
 export default function SettingsPage() {
   const { bindings, setBinding, reset } = useKeyBindings();
+  const isTouch = useIsTouchDevice();
   const [listeningFor, setListeningFor] = useState<string | null>(null);
 
   useEffect(() => {
@@ -26,6 +28,19 @@ export default function SettingsPage() {
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [listeningFor, setBinding]);
+
+  if (isTouch) {
+    return (
+      <main className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-4 px-6 py-10 text-center">
+        <p className="text-slate-400">
+          모바일에서는 화면의 숫자 버튼으로 플레이하므로 키 설정이 필요하지 않습니다.
+        </p>
+        <Link href="/" className="text-orange-400 hover:text-orange-300">
+          홈으로
+        </Link>
+      </main>
+    );
+  }
 
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-6 px-6 py-10">
