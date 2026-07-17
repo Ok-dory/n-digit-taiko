@@ -45,7 +45,7 @@ export function GameOverOverlay({ stage, scoreState, base, hps }: GameOverOverla
       <Mascot scale={0.75} className="relative" />
       <div className="mt-1 font-display text-[15px] font-extrabold tracking-wide text-white">라운드 종료!</div>
 
-      <div className="relative mt-4 w-[86%] max-w-[326px] rounded-3xl bg-cream-card px-6 py-6">
+      <div className="relative mt-4 w-[86%] max-w-[326px] rounded-3xl bg-cream-card px-6 py-6 lg:max-w-md">
         <div className="text-center">
           <div className="text-xs font-bold text-ink-muted">최종 점수</div>
           <div className="font-mono text-[44px] font-extrabold text-coral">{scoreState.score.toLocaleString()}</div>
@@ -100,7 +100,7 @@ function RankingStage({ base }: { base: Base }) {
     : [];
 
   return (
-    <div className="relative mt-4 w-[86%] max-w-[326px] rounded-3xl bg-cream-card px-6 py-6 text-center">
+    <div className="relative mt-4 w-[86%] max-w-[326px] rounded-3xl bg-cream-card px-6 py-6 text-center lg:max-w-xl">
       <h2 className="font-display text-lg font-extrabold text-coral">-- RANKING ({base}진수) --</h2>
 
       {board === null && <p className="mt-3 text-sm font-bold text-ink-muted">불러오는 중...</p>}
@@ -110,11 +110,11 @@ function RankingStage({ base }: { base: Base }) {
       )}
 
       {board !== null && rows.length > 0 && (
-        <ol className="mt-3 space-y-1.5 text-left text-sm">
+        <ol className="mt-3 space-y-1.5 text-left text-sm lg:space-y-2 lg:text-base">
           {rows.map((entry, i) => (
             <li
               key={entry.id ?? i}
-              className={`flex items-center gap-2 rounded-xl px-3 py-2 font-mono font-bold ${
+              className={`flex items-center gap-2 rounded-xl px-3 py-2 font-mono font-bold lg:gap-3 lg:px-4 lg:py-3 ${
                 entry.isAllTime ? "bg-gold/40" : "bg-cream-softer"
               }`}
             >

@@ -21,7 +21,7 @@ export function PlayScreen({ base, playerName }: { base: Base; playerName: strin
 
   return (
     <main className="flex flex-1 items-center justify-center px-4 py-6">
-      <div className="relative flex min-h-[640px] w-full max-w-[420px] flex-1 flex-col overflow-hidden rounded-[40px] bg-navy shadow-[0_30px_60px_-20px_oklch(30%_0.02_60_/_0.35)]">
+      <div className="relative flex min-h-[640px] w-full max-w-[420px] flex-1 flex-col overflow-hidden rounded-[40px] bg-navy shadow-[0_30px_60px_-20px_oklch(30%_0.02_60_/_0.35)] lg:max-w-4xl lg:min-h-[75vh]">
         {phase === "countdown" && <CountdownOverlay onDone={() => setPhase("play")} />}
         {phase === "play" && <ActiveGame base={base} playerName={playerName} />}
       </div>
@@ -88,7 +88,7 @@ function ActiveGame({ base, playerName }: { base: Base; playerName: string }) {
           <div className="relative flex flex-col items-center gap-4">
             {problem && (
               <div
-                className="font-mono text-6xl font-extrabold text-white sm:text-7xl"
+                className="font-mono text-6xl font-extrabold text-white sm:text-7xl lg:text-8xl"
                 style={{ textShadow: "0 4px 0 oklch(0% 0 0 / .3)" }}
               >
                 {problem.decimalValue}
@@ -102,7 +102,7 @@ function ActiveGame({ base, playerName }: { base: Base; playerName: string }) {
             problem={problem}
             digitIndex={digitIndex}
             variant="side"
-            className="relative hidden lg:block"
+            className="relative hidden lg:block lg:w-48"
           />
         </div>
 

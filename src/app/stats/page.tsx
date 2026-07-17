@@ -27,7 +27,7 @@ export default function StatsPage() {
 
   return (
     <main className="flex flex-1 items-center justify-center px-4 py-8 sm:py-12">
-      <div className="w-full max-w-md overflow-hidden rounded-[40px] bg-cream-card shadow-[0_30px_60px_-20px_oklch(30%_0.02_60_/_0.35)]">
+      <div className="w-full max-w-md overflow-hidden rounded-[40px] bg-cream-card shadow-[0_30px_60px_-20px_oklch(30%_0.02_60_/_0.35)] lg:max-w-3xl">
         <div className="flex items-center justify-between bg-gold px-6 py-5 text-gold-ink">
           <Link href="/" className="font-bold">
             ‹
@@ -52,7 +52,7 @@ export default function StatsPage() {
           )}
 
           {playerName && stats && (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
               <StatCard label="평균 정확도" value={`${stats.averageAccuracy.toFixed(1)}%`} />
               <StatCard label="최고 점수" value={stats.bestScore.toLocaleString()} />
               <StatCard label="총 플레이 횟수" value={`${stats.totalPlays}`} />

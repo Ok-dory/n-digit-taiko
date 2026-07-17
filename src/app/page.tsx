@@ -29,7 +29,7 @@ export default function Home() {
 
   return (
     <main className="flex flex-1 items-center justify-center px-4 py-8 sm:py-12">
-      <div className="w-full max-w-[390px] overflow-hidden rounded-[44px] bg-cream-card shadow-[0_30px_60px_-20px_oklch(30%_0.02_60_/_0.35)]">
+      <div className="w-full max-w-[390px] overflow-hidden rounded-[44px] bg-cream-card shadow-[0_30px_60px_-20px_oklch(30%_0.02_60_/_0.35)] lg:max-w-xl">
         <div
           className="relative flex h-[280px] flex-col items-center justify-center gap-2 overflow-hidden"
           style={{

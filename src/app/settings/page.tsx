@@ -43,7 +43,7 @@ export default function SettingsPage() {
 
   return (
     <main className="flex flex-1 items-center justify-center px-4 py-8 sm:py-12">
-      <div className="w-full max-w-[440px] overflow-hidden rounded-[40px] bg-cream-card shadow-[0_30px_60px_-20px_oklch(30%_0.02_60_/_0.35)]">
+      <div className="w-full max-w-[440px] overflow-hidden rounded-[40px] bg-cream-card shadow-[0_30px_60px_-20px_oklch(30%_0.02_60_/_0.35)] lg:max-w-2xl">
         <div className="flex items-center justify-between bg-coral px-6 py-5 text-white">
           <Link href="/" className="font-bold">
             ‹
@@ -59,7 +59,7 @@ export default function SettingsPage() {
             각 숫자에 원하는 키를 자유롭게 지정하세요. &quot;변경&quot;을 누른 뒤 원하는 키를 누르면 저장됩니다.
           </p>
 
-          <div className="grid grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
             {DIGIT_SYMBOLS.map((symbol, i) => {
               const palette = DIGIT_PALETTE[i % DIGIT_PALETTE.length];
               return (

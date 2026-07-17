@@ -21,7 +21,7 @@ export function DigitProgress({ problem, entries }: DigitProgressProps) {
           return (
             <span
               key={i}
-              className={`flex h-14 w-11 items-center justify-center rounded-xl font-mono text-[22px] font-extrabold ${
+              className={`flex h-14 w-11 items-center justify-center rounded-xl font-mono text-[22px] font-extrabold lg:h-16 lg:w-14 lg:text-2xl ${
                 entry === undefined
                   ? "bg-navy-deep text-navy-text-faint"
                   : entry.judgment === "correct"
