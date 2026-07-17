@@ -1,15 +1,51 @@
 @import "tailwindcss";
 
 :root {
-  --background: #020617;
-  --foreground: #f8fafc;
+  --background: oklch(92% 0.015 75);
+  --foreground: oklch(30% 0.02 60);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-noto-sans-kr);
-  --font-mono: var(--font-geist-mono);
+
+  --color-cream: oklch(92% 0.015 75);
+  --color-cream-card: oklch(99% 0.005 75);
+  --color-cream-soft: oklch(95% 0.012 75);
+  --color-cream-softer: oklch(93% 0.012 75);
+  --color-cream-border: oklch(88% 0.01 75);
+
+  --color-ink: oklch(30% 0.02 60);
+  --color-ink-muted: oklch(50% 0.02 60);
+  --color-ink-faint: oklch(45% 0.02 60);
+
+  --color-coral: oklch(58% 0.2 25);
+  --color-coral-strong: oklch(62% 0.2 25);
+  --color-coral-dark: oklch(52% 0.19 22);
+  --color-coral-deep: oklch(45% 0.18 22);
+  --color-coral-shadow: oklch(40% 0.16 20);
+
+  --color-teal: oklch(60% 0.12 195);
+  --color-teal-strong: oklch(62% 0.12 195);
+  --color-teal-dark: oklch(50% 0.11 195);
+  --color-teal-shadow: oklch(40% 0.09 195);
+
+  --color-gold: oklch(83% 0.15 95);
+  --color-gold-ink: oklch(35% 0.08 80);
+
+  --color-navy: oklch(18% 0.025 260);
+  --color-navy-panel: oklch(24% 0.02 260);
+  --color-navy-well: oklch(20% 0.025 260);
+  --color-navy-deep: oklch(28% 0.02 260);
+  --color-navy-text: oklch(80% 0.01 260);
+  --color-navy-text-muted: oklch(60% 0.01 260);
+  --color-navy-text-faint: oklch(45% 0.02 260);
+
+  --color-success: oklch(70% 0.15 145);
+
+  --font-display: var(--font-baloo), var(--font-noto-sans-kr), sans-serif;
+  --font-sans: var(--font-nunito), var(--font-noto-sans-kr), sans-serif;
+  --font-mono: var(--font-jetbrains-mono), monospace;
 }
 
 body {
@@ -25,4 +61,32 @@ body {
 button,
 a {
   touch-action: manipulation;
+}
+
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(var(--r, 0deg));
+  }
+  50% {
+    transform: translateY(-6px) rotate(var(--r, 0deg));
+  }
+}
+
+@keyframes wave {
+  0%,
+  100% {
+    transform: rotate(-8deg);
+  }
+  50% {
+    transform: rotate(18deg);
+  }
+}
+
+.animate-bob {
+  animation: bob 2.6s ease-in-out infinite;
+}
+
+.animate-wave {
+  animation: wave 1.8s ease-in-out infinite;
 }

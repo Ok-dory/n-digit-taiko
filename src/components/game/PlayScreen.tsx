@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { useGameEngine } from "@/hooks/useGameEngine";
 import { RankingManager } from "@/game/RankingManager";
 import { HUD } from "@/components/game/HUD";
@@ -21,15 +20,8 @@ export function PlayScreen({ base, playerName }: { base: Base; playerName: strin
   const [phase, setPhase] = useState<Phase>("countdown");
 
   return (
-    <main className="flex flex-1 flex-col">
-      <div className="flex items-center justify-between px-4 pt-3">
-        <Link href="/" className="text-sm text-slate-500 hover:text-orange-400">
-          ← 홈
-        </Link>
-        <span className="text-xs text-slate-500">{playerName}</span>
-      </div>
-
-      <div className="relative mx-4 mb-4 flex flex-1 flex-col justify-between overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/30">
+    <main className="flex flex-1 items-center justify-center px-4 py-6">
+      <div className="relative flex min-h-[640px] w-full max-w-[420px] flex-1 flex-col overflow-hidden rounded-[40px] bg-navy shadow-[0_30px_60px_-20px_oklch(30%_0.02_60_/_0.35)]">
         {phase === "countdown" && <CountdownOverlay onDone={() => setPhase("play")} />}
         {phase === "play" && <ActiveGame base={base} playerName={playerName} />}
       </div>
@@ -81,10 +73,24 @@ function ActiveGame({ base, playerName }: { base: Base; playerName: string }) {
       />
 
       <div className="flex flex-1 flex-col">
-        <div className="flex flex-1 items-center justify-center gap-6 lg:px-4">
-          <div className="flex flex-col items-center gap-4">
+        <div
+          className="relative mx-5 mt-4 flex flex-1 items-center justify-center gap-6 overflow-hidden rounded-3xl"
+          style={{ background: "radial-gradient(circle at 50% 30%, oklch(28% 0.03 260), oklch(20% 0.025 260))" }}
+        >
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{
+              backgroundImage:
+                "repeating-linear-gradient(135deg, oklch(100% 0 0 / .03) 0 16px, transparent 16px 32px)",
+            }}
+          />
+
+          <div className="relative flex flex-col items-center gap-4">
             {problem && (
-              <div className="font-mono text-6xl font-extrabold text-slate-100 sm:text-7xl">
+              <div
+                className="font-mono text-6xl font-extrabold text-white sm:text-7xl"
+                style={{ textShadow: "0 4px 0 oklch(0% 0 0 / .3)" }}
+              >
                 {problem.decimalValue}
               </div>
             )}
@@ -96,7 +102,7 @@ function ActiveGame({ base, playerName }: { base: Base; playerName: string }) {
             problem={problem}
             digitIndex={digitIndex}
             variant="side"
-            className="hidden lg:block"
+            className="relative hidden lg:block"
           />
         </div>
 

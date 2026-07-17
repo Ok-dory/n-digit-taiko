@@ -38,20 +38,20 @@ export function PlaceValueHelper({ base, problem, digitIndex, variant, className
 
   if (variant === "side") {
     return (
-      <div className={`w-40 shrink-0 rounded-2xl border border-slate-800 bg-slate-900/60 p-3 ${className}`}>
-        <div className="mb-2 text-center text-xs text-slate-500">
+      <div className={`w-40 shrink-0 rounded-2xl bg-navy-deep p-3 ${className}`}>
+        <div className="mb-2 text-center text-xs font-bold text-navy-text-muted">
           이 자리 값
           <br />
-          <span className="font-mono text-orange-400">×{placeValue.toLocaleString()}</span>
+          <span className="font-mono text-coral">×{placeValue.toLocaleString()}</span>
         </div>
         <div className="flex flex-col gap-1">
           {symbols.map((symbol, digit) => (
             <div
               key={symbol}
-              className="flex items-center justify-between rounded-lg bg-slate-800/60 px-2 py-1 font-mono text-sm"
+              className="flex items-center justify-between rounded-lg bg-navy-well px-2 py-1 font-mono text-sm font-bold"
             >
-              <span className="text-orange-400">{symbol}</span>
-              <span className="text-slate-300">{(digit * placeValue).toLocaleString()}</span>
+              <span className="text-coral">{symbol}</span>
+              <span className="text-navy-text">{(digit * placeValue).toLocaleString()}</span>
             </div>
           ))}
         </div>
@@ -61,16 +61,14 @@ export function PlaceValueHelper({ base, problem, digitIndex, variant, className
 
   return (
     <div className={`flex items-center gap-2 overflow-x-auto px-4 pb-2 ${className}`}>
-      <span className="shrink-0 text-xs text-slate-500">
-        ×{placeValue.toLocaleString()}
-      </span>
+      <span className="shrink-0 text-xs font-bold text-navy-text-muted">×{placeValue.toLocaleString()}</span>
       {symbols.map((symbol, digit) => (
         <div
           key={symbol}
-          className="flex shrink-0 items-center gap-1 rounded-lg bg-slate-800/60 px-2 py-1 font-mono text-sm"
+          className="flex shrink-0 items-center gap-1 rounded-lg bg-navy-deep px-2 py-1 font-mono text-sm font-bold"
         >
-          <span className="text-orange-400">{symbol}</span>
-          <span className="text-slate-300">{(digit * placeValue).toLocaleString()}</span>
+          <span className="text-coral">{symbol}</span>
+          <span className="text-navy-text">{(digit * placeValue).toLocaleString()}</span>
         </div>
       ))}
     </div>

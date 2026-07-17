@@ -19,8 +19,8 @@ function PlayPageInner() {
   if (!name) {
     return (
       <main className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
-        <p className="text-slate-400">이름이 필요합니다. 홈에서 이름을 입력하고 시작해주세요.</p>
-        <Link href="/" className="text-orange-400 hover:text-orange-300">
+        <p className="font-bold text-ink-muted">이름이 필요합니다. 홈에서 이름을 입력하고 시작해주세요.</p>
+        <Link href="/" className="font-display font-bold text-coral">
           홈으로
         </Link>
       </main>
@@ -32,7 +32,9 @@ function PlayPageInner() {
 
 export default function PlayPage() {
   return (
-    <Suspense fallback={<main className="flex flex-1 items-center justify-center text-slate-500">불러오는 중...</main>}>
+    <Suspense
+      fallback={<main className="flex flex-1 items-center justify-center font-bold text-ink-muted">불러오는 중...</main>}
+    >
       <PlayPageInner />
     </Suspense>
   );

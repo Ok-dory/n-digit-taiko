@@ -20,7 +20,7 @@ export function CountdownOverlay({ onDone }: { onDone: () => void }) {
   }, [count, onDone]);
 
   return (
-    <div className="absolute inset-0 flex items-center justify-center bg-slate-950">
+    <div className="absolute inset-0 flex items-center justify-center bg-navy">
       <AnimatePresence mode="wait">
         <motion.span
           key={count}
@@ -28,7 +28,7 @@ export function CountdownOverlay({ onDone }: { onDone: () => void }) {
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 1.4 }}
           transition={{ duration: 0.4 }}
-          className="text-9xl font-extrabold text-orange-400"
+          className="font-display text-9xl font-extrabold text-coral"
         >
           {count}
         </motion.span>

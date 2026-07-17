@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { BaseConverter } from "@/game/BaseConverter";
+import { BaseSlider } from "@/components/ui/BaseSlider";
 import type { Base } from "@/types/game";
 
 interface DivisionStep {
@@ -74,57 +75,48 @@ export function LearnQuiz() {
   const accuracy = stats.total > 0 ? Math.round((stats.correct / stats.total) * 1000) / 10 : 100;
 
   return (
-    <div className="mx-auto flex w-full max-w-lg flex-col gap-6">
-      <div className="flex justify-between rounded-xl border border-slate-800 bg-slate-900/60 px-4 py-3 text-sm">
-        <span>
-          정답률 <span className="font-mono text-orange-400">{accuracy}%</span>
-        </span>
-        <span>
-          평균 시간 <span className="font-mono text-orange-400">{avgSeconds}s</span>
-        </span>
-        <span>
-          문제 수 <span className="font-mono text-orange-400">{stats.total}</span>
-        </span>
+    <div className="flex flex-col gap-5">
+      <div className="flex justify-between rounded-2xl bg-cream-soft px-4 py-3.5">
+        <MiniStat label="정답률" value={`${accuracy}%`} success />
+        <MiniStat label="평균 시간" value={`${avgSeconds}s`} />
+        <MiniStat label="문제 수" value={`${stats.total}`} />
       </div>
 
-      <div>
-        <h2 className="mb-2 text-sm font-semibold text-slate-400">목표 진법: {base}진수</h2>
-        <input
-          type="range"
-          min={2}
-          max={16}
-          value={base}
-          onChange={(e) => nextRound(Number(e.target.value) as Base)}
-          className="w-full accent-orange-500"
-        />
+      <div className="flex flex-col gap-2.5">
+        <div className="flex justify-between">
+          <h2 className="font-display text-[13px] font-bold text-ink">목표 진법</h2>
+          <span className="font-display text-sm font-extrabold text-teal">{base}진수</span>
+        </div>
+        <BaseSlider value={base} min={2} max={16} onChange={(v) => nextRound(v as Base)} accent="teal" />
       </div>
 
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 text-center">
-        <div className="text-xs text-slate-500">10진수</div>
-        <div className="font-mono text-4xl font-bold">{decimal}</div>
+      <div className="rounded-[20px] bg-navy px-6 py-7 text-center">
+        <div className="text-xs font-bold text-navy-text-muted">10진수</div>
+        <div className="font-mono text-[44px] font-extrabold text-white">{decimal}</div>
       </div>
 
       <div className="flex flex-col gap-2">
-        <label className="text-sm text-slate-400">{base}진수로 변환해서 입력하세요</label>
+        <label className="text-[13px] font-bold text-ink">{base}진수로 변환해서 입력하세요</label>
         <input
           value={input}
           onChange={(e) => setInput(e.target.value.toUpperCase())}
           onKeyDown={(e) => e.key === "Enter" && submit()}
           disabled={result !== null}
-          className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 font-mono text-lg tracking-widest outline-none focus:border-orange-500"
+          className="rounded-2xl border-2 border-cream-border bg-cream-soft px-4 py-3.5 font-mono text-[13px] font-bold tracking-widest text-ink-muted outline-none focus:border-teal"
           placeholder={`허용 문자: ${validChars.join(", ")}`}
         />
         {result === null ? (
           <button
             onClick={submit}
-            className="rounded-lg bg-orange-500 py-2 font-semibold text-white transition-colors hover:bg-orange-400"
+            className="rounded-2xl py-3.5 font-display text-base font-extrabold text-white shadow-[0_5px_0_var(--color-teal-shadow)] transition-transform active:translate-y-0.5 active:shadow-none"
+            style={{ background: "linear-gradient(180deg, var(--color-teal-strong), var(--color-teal-dark))" }}
           >
             확인
           </button>
         ) : (
           <button
             onClick={() => nextRound()}
-            className="rounded-lg bg-slate-800 py-2 font-semibold text-slate-200 transition-colors hover:bg-slate-700"
+            className="rounded-2xl bg-cream-softer py-3.5 font-display text-base font-extrabold text-ink transition-opacity active:opacity-80"
           >
             다음 문제
           </button>
@@ -132,28 +124,31 @@ export function LearnQuiz() {
       </div>
 
       {result && (
-        <div
-          className={`rounded-xl border p-4 ${
-            result === "correct" ? "border-emerald-700 bg-emerald-950/40" : "border-rose-700 bg-rose-950/40"
-          }`}
-        >
-          <p className={`mb-3 font-semibold ${result === "correct" ? "text-emerald-400" : "text-rose-400"}`}>
+        <div className={`rounded-2xl p-4 ${result === "correct" ? "bg-teal/10" : "bg-rose-950/10"}`}>
+          <p className={`mb-3 font-display font-bold ${result === "correct" ? "text-teal" : "text-rose-500"}`}>
             {result === "correct" ? "정답입니다!" : `오답입니다. 정답: ${correctDigits}`}
           </p>
-          <div className="space-y-1 font-mono text-sm text-slate-400">
+          <div className="space-y-1 font-mono text-sm font-bold text-ink-muted">
             {steps.map((step, i) => (
               <div key={i}>
                 {step.dividend} ÷ {base} = {step.quotient} 나머지{" "}
-                <span className="text-orange-400">{BaseConverter.digitToSymbol(step.remainder)}</span>
+                <span className="text-coral">{BaseConverter.digitToSymbol(step.remainder)}</span>
               </div>
             ))}
-            <div className="pt-1 text-slate-300">
-              → 나머지를 아래에서 위로 읽으면{" "}
-              <span className="font-bold text-orange-400">{correctDigits}</span>
+            <div className="pt-1 text-ink">
+              → 나머지를 아래에서 위로 읽으면 <span className="font-bold text-coral">{correctDigits}</span>
             </div>
           </div>
         </div>
       )}
     </div>
+  );
+}
+
+function MiniStat({ label, value, success }: { label: string; value: string; success?: boolean }) {
+  return (
+    <span className="text-xs font-bold text-ink-muted">
+      {label} <span className={`font-mono ${success ? "text-success" : "text-teal"}`}>{value}</span>
+    </span>
   );
 }

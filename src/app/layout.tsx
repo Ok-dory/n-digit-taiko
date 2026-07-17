@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Noto_Sans_KR, Geist_Mono } from "next/font/google";
+import { Noto_Sans_KR, Baloo_2, Nunito, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
 const notoSansKR = Noto_Sans_KR({
@@ -8,9 +8,22 @@ const notoSansKR = Noto_Sans_KR({
   weight: ["400", "500", "700", "900"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const baloo2 = Baloo_2({
+  variable: "--font-baloo",
   subsets: ["latin"],
+  weight: ["500", "700", "800"],
+});
+
+const nunito = Nunito({
+  variable: "--font-nunito",
+  subsets: ["latin"],
+  weight: ["400", "600", "700", "800"],
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
+  subsets: ["latin"],
+  weight: ["500", "700", "800"],
 });
 
 export const metadata: Metadata = {
@@ -35,9 +48,9 @@ export default function RootLayout({
   return (
     <html
       lang="ko"
-      className={`${notoSansKR.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${notoSansKR.variable} ${baloo2.variable} ${nunito.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-slate-950 text-slate-50">{children}</body>
+      <body className="min-h-full flex flex-col bg-cream text-ink font-sans">{children}</body>
     </html>
   );
 }

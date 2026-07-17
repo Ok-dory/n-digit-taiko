@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useKeyBindings } from "@/hooks/useKeyBindings";
 import { useIsTouchDevice } from "@/hooks/useIsTouchDevice";
+import { DIGIT_PALETTE } from "@/components/digitPalette";
 
 const DIGIT_SYMBOLS = "0123456789ABCDEF".split("");
 
@@ -31,11 +32,9 @@ export default function SettingsPage() {
 
   if (isTouch) {
     return (
-      <main className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-4 px-6 py-10 text-center">
-        <p className="text-slate-400">
-          모바일에서는 화면의 숫자 버튼으로 플레이하므로 키 설정이 필요하지 않습니다.
-        </p>
-        <Link href="/" className="text-orange-400 hover:text-orange-300">
+      <main className="flex flex-1 flex-col items-center justify-center gap-4 px-6 py-10 text-center">
+        <p className="font-bold text-ink-muted">모바일에서는 화면의 숫자 버튼으로 플레이하므로 키 설정이 필요하지 않습니다.</p>
+        <Link href="/" className="font-display font-bold text-coral">
           홈으로
         </Link>
       </main>
@@ -43,41 +42,50 @@ export default function SettingsPage() {
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-6 px-6 py-10">
-      <div className="flex items-center justify-between">
-        <Link href="/" className="text-sm text-slate-500 hover:text-orange-400">
-          ← 홈
-        </Link>
-        <h1 className="text-xl font-bold">키 설정</h1>
-        <button onClick={reset} className="text-sm text-slate-500 hover:text-orange-400">
-          초기화
-        </button>
-      </div>
+    <main className="flex flex-1 items-center justify-center px-4 py-8 sm:py-12">
+      <div className="w-full max-w-[440px] overflow-hidden rounded-[40px] bg-cream-card shadow-[0_30px_60px_-20px_oklch(30%_0.02_60_/_0.35)]">
+        <div className="flex items-center justify-between bg-coral px-6 py-5 text-white">
+          <Link href="/" className="font-bold">
+            ‹
+          </Link>
+          <h1 className="font-display text-[17px] font-extrabold">키 설정</h1>
+          <button onClick={reset} className="text-xs font-bold opacity-85">
+            초기화
+          </button>
+        </div>
 
-      <p className="text-sm text-slate-400">
-        각 숫자에 원하는 키를 자유롭게 지정하세요. &quot;변경&quot;을 누른 뒤 원하는 키를 누르면 저장됩니다.
-      </p>
+        <div className="px-5 py-6">
+          <p className="mb-4 text-center text-[13px] font-bold text-ink-muted">
+            각 숫자에 원하는 키를 자유롭게 지정하세요. &quot;변경&quot;을 누른 뒤 원하는 키를 누르면 저장됩니다.
+          </p>
 
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-        {DIGIT_SYMBOLS.map((symbol) => (
-          <div
-            key={symbol}
-            className="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-900/60 px-4 py-3"
-          >
-            <span className="font-mono text-lg font-bold text-orange-400">{symbol}</span>
-            <span className="font-mono text-slate-300">{keyLabel(bindings[symbol] ?? "-")}</span>
-            <button
-              onClick={() => setListeningFor(symbol)}
-              className={`rounded-lg px-3 py-1 text-sm transition-colors ${
-                listeningFor === symbol
-                  ? "bg-orange-500 text-white"
-                  : "bg-slate-800 text-slate-300 hover:bg-slate-700"
-              }`}
-            >
-              {listeningFor === symbol ? "키를 누르세요..." : "변경"}
-            </button>
+          <div className="grid grid-cols-2 gap-2.5">
+            {DIGIT_SYMBOLS.map((symbol, i) => {
+              const palette = DIGIT_PALETTE[i % DIGIT_PALETTE.length];
+              return (
+                <div key={symbol} className="flex items-center gap-2 rounded-2xl bg-cream-soft px-3 py-2.5">
+                  <div
+                    className={`flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-lg font-mono text-[13px] font-extrabold ${palette.text}`}
+                    style={{ background: palette.solid }}
+                  >
+                    {symbol}
+                  </div>
+                  <div className="flex-1 truncate font-mono text-xs font-bold text-ink">
+                    {keyLabel(bindings[symbol] ?? "-")}
+                  </div>
+                  <button
+                    onClick={() => setListeningFor(symbol)}
+                    className={`shrink-0 rounded-full px-2.5 py-1.5 text-[10px] font-bold transition-colors ${
+                      listeningFor === symbol ? "bg-coral text-white" : "bg-cream-border/60 text-ink-muted"
+                    }`}
+                  >
+                    {listeningFor === symbol ? "키를 누르세요..." : "변경"}
+                  </button>
+                </div>
+              );
+            })}
           </div>
-        ))}
+        </div>
       </div>
     </main>
   );
