@@ -20,8 +20,8 @@ export function PlayScreen({ base, playerName }: { base: Base; playerName: strin
   const [phase, setPhase] = useState<Phase>("countdown");
 
   return (
-    <main className="flex flex-1 items-center justify-center px-4 py-6">
-      <div className="relative flex min-h-[640px] w-full max-w-[420px] flex-1 flex-col overflow-hidden rounded-[40px] bg-navy shadow-[0_30px_60px_-20px_oklch(30%_0.02_60_/_0.35)] lg:max-w-4xl lg:min-h-[75vh]">
+    <main className="flex flex-1 items-center justify-center px-0 py-4 sm:px-4 sm:py-6">
+      <div className="relative flex min-h-[640px] w-full flex-1 flex-col overflow-hidden rounded-[40px] bg-navy shadow-[0_30px_60px_-20px_oklch(30%_0.02_60_/_0.35)] sm:max-w-[420px] lg:max-w-4xl lg:min-h-[75vh]">
         {phase === "countdown" && <CountdownOverlay onDone={() => setPhase("play")} />}
         {phase === "play" && <ActiveGame base={base} playerName={playerName} />}
       </div>

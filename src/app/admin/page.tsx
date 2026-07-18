@@ -56,8 +56,8 @@ export default function AdminPage() {
     };
 
     return (
-      <main className="flex flex-1 items-center justify-center px-4 py-8">
-        <div className="w-full max-w-sm overflow-hidden rounded-[40px] bg-cream-card shadow-[0_30px_60px_-20px_oklch(30%_0.02_60_/_0.35)]">
+      <main className="flex flex-1 items-center justify-center px-0 py-6 sm:px-4 sm:py-8">
+        <div className="w-full overflow-hidden rounded-[40px] bg-cream-card shadow-[0_30px_60px_-20px_oklch(30%_0.02_60_/_0.35)] sm:max-w-sm">
           <div className="bg-coral px-6 py-5 text-center text-white">
             <h1 className="font-display text-[17px] font-extrabold">관리자 로그인</h1>
           </div>
@@ -124,8 +124,8 @@ function EntryModeration({ auth, email }: { auth: NonNullable<ReturnType<typeof 
   };
 
   return (
-    <main className="flex flex-1 items-center justify-center px-4 py-8 sm:py-12">
-      <div className="w-full max-w-3xl overflow-hidden rounded-[40px] bg-cream-card shadow-[0_30px_60px_-20px_oklch(30%_0.02_60_/_0.35)] lg:max-w-5xl">
+    <main className="flex flex-1 items-center justify-center px-0 py-6 sm:px-4 sm:py-12">
+      <div className="w-full overflow-hidden rounded-[40px] bg-cream-card shadow-[0_30px_60px_-20px_oklch(30%_0.02_60_/_0.35)] sm:max-w-3xl lg:max-w-6xl">
         <div className="flex items-center justify-between bg-coral px-6 py-5 text-white">
           <Link href="/" className="font-bold">
             ‹

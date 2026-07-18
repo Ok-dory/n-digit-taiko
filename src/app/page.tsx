@@ -28,8 +28,8 @@ export default function Home() {
   };
 
   return (
-    <main className="flex flex-1 items-center justify-center px-4 py-8 sm:py-12">
-      <div className="w-full max-w-[390px] overflow-hidden rounded-[44px] bg-cream-card shadow-[0_30px_60px_-20px_oklch(30%_0.02_60_/_0.35)] lg:max-w-xl">
+    <main className="flex flex-1 items-center justify-center px-0 py-6 sm:px-4 sm:py-12">
+      <div className="w-full overflow-hidden rounded-[44px] bg-cream-card shadow-[0_30px_60px_-20px_oklch(30%_0.02_60_/_0.35)] sm:max-w-[390px] lg:max-w-4xl">
         <div
           className="relative flex h-[280px] flex-col items-center justify-center gap-2 overflow-hidden"
           style={{
@@ -64,74 +64,76 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="-mt-6 flex flex-col gap-5 rounded-t-[28px] bg-cream-card px-6 pt-7 pb-6">
-          <p className="text-center text-[13px] leading-relaxed font-bold text-ink-muted">
-            숫자가 나오면 그 진법 조합을 30초 안에
-            <br />
-            최대한 빠르고 정확하게 완성하세요.
-          </p>
+        <div className="-mt-6 rounded-t-[28px] bg-cream-card px-6 pt-7 pb-6">
+          <div className="mx-auto flex w-full max-w-md flex-col gap-5">
+            <p className="text-center text-[13px] leading-relaxed font-bold text-ink-muted">
+              숫자가 나오면 그 진법 조합을 30초 안에
+              <br />
+              최대한 빠르고 정확하게 완성하세요.
+            </p>
 
-          <section className="flex flex-col gap-2">
-            <h2 className="font-display text-[13px] font-bold text-ink">이름</h2>
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && startGame()}
-              placeholder="이름을 입력하세요"
-              maxLength={20}
-              className="rounded-2xl border-2 border-cream-border bg-cream-soft px-4 py-3 font-bold text-ink outline-none placeholder:font-normal placeholder:text-ink-faint focus:border-coral"
-            />
-          </section>
+            <section className="flex flex-col gap-2">
+              <h2 className="font-display text-[13px] font-bold text-ink">이름</h2>
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && startGame()}
+                placeholder="이름을 입력하세요"
+                maxLength={20}
+                className="rounded-2xl border-2 border-cream-border bg-cream-soft px-4 py-3 font-bold text-ink outline-none placeholder:font-normal placeholder:text-ink-faint focus:border-coral"
+              />
+            </section>
 
-          <section className="flex flex-col gap-2.5">
-            <div className="flex items-baseline justify-between">
-              <h2 className="font-display text-[13px] font-bold text-ink">진법</h2>
-              <span className="font-display text-[15px] font-extrabold text-coral">{base}진수</span>
-            </div>
-            <BaseSlider value={base} min={2} max={16} onChange={(v) => setBase(v as Base)} accent="coral" />
-            <div className="flex justify-between font-mono text-[11px] font-bold text-ink-muted">
-              <span>2</span>
-              <span>16</span>
-            </div>
-          </section>
+            <section className="flex flex-col gap-2.5">
+              <div className="flex items-baseline justify-between">
+                <h2 className="font-display text-[13px] font-bold text-ink">진법</h2>
+                <span className="font-display text-[15px] font-extrabold text-coral">{base}진수</span>
+              </div>
+              <BaseSlider value={base} min={2} max={16} onChange={(v) => setBase(v as Base)} accent="coral" />
+              <div className="flex justify-between font-mono text-[11px] font-bold text-ink-muted">
+                <span>2</span>
+                <span>16</span>
+              </div>
+            </section>
 
-          <button
-            onClick={startGame}
-            disabled={!name.trim()}
-            className="rounded-2xl py-3.5 font-display text-[19px] font-extrabold tracking-wide text-white shadow-[0_6px_0_var(--color-coral-shadow),0_14px_24px_oklch(30%_0.1_25_/_0.35)] transition-transform active:translate-y-0.5 active:shadow-[0_3px_0_var(--color-coral-shadow)] disabled:cursor-not-allowed disabled:opacity-50"
-            style={{ background: "linear-gradient(180deg, var(--color-coral-strong), var(--color-coral-dark))" }}
-          >
-            게임 시작
-          </button>
-
-          <nav className="mt-1 flex flex-wrap justify-center gap-2.5">
-            <Link
-              href="/learn"
-              className="rounded-full bg-gold px-3.5 py-2 text-xs font-bold text-gold-ink transition-opacity hover:opacity-80"
+            <button
+              onClick={startGame}
+              disabled={!name.trim()}
+              className="rounded-2xl py-3.5 font-display text-[19px] font-extrabold tracking-wide text-white shadow-[0_6px_0_var(--color-coral-shadow),0_14px_24px_oklch(30%_0.1_25_/_0.35)] transition-transform active:translate-y-0.5 active:shadow-[0_3px_0_var(--color-coral-shadow)] disabled:cursor-not-allowed disabled:opacity-50"
+              style={{ background: "linear-gradient(180deg, var(--color-coral-strong), var(--color-coral-dark))" }}
             >
-              학습 모드
-            </Link>
-            <Link
-              href="/ranking"
-              className="rounded-full bg-cream-softer px-3.5 py-2 text-xs font-bold text-ink-faint transition-opacity hover:opacity-80"
-            >
-              랭킹
-            </Link>
-            <Link
-              href="/stats"
-              className="rounded-full bg-cream-softer px-3.5 py-2 text-xs font-bold text-ink-faint transition-opacity hover:opacity-80"
-            >
-              통계
-            </Link>
-            {!isTouch && (
+              게임 시작
+            </button>
+
+            <nav className="mt-1 flex flex-wrap justify-center gap-2.5">
               <Link
-                href="/settings"
+                href="/learn"
+                className="rounded-full bg-gold px-3.5 py-2 text-xs font-bold text-gold-ink transition-opacity hover:opacity-80"
+              >
+                학습 모드
+              </Link>
+              <Link
+                href="/ranking"
                 className="rounded-full bg-cream-softer px-3.5 py-2 text-xs font-bold text-ink-faint transition-opacity hover:opacity-80"
               >
-                키 설정
+                랭킹
               </Link>
-            )}
-          </nav>
+              <Link
+                href="/stats"
+                className="rounded-full bg-cream-softer px-3.5 py-2 text-xs font-bold text-ink-faint transition-opacity hover:opacity-80"
+              >
+                통계
+              </Link>
+              {!isTouch && (
+                <Link
+                  href="/settings"
+                  className="rounded-full bg-cream-softer px-3.5 py-2 text-xs font-bold text-ink-faint transition-opacity hover:opacity-80"
+                >
+                  키 설정
+                </Link>
+              )}
+            </nav>
+          </div>
         </div>
       </div>
     </main>

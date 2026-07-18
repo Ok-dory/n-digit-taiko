@@ -26,8 +26,8 @@ export default function RankingPage() {
     : [];
 
   return (
-    <main className="flex flex-1 items-center justify-center px-4 py-8 sm:py-12">
-      <div className="w-full max-w-2xl overflow-hidden rounded-[40px] bg-cream-card shadow-[0_30px_60px_-20px_oklch(30%_0.02_60_/_0.35)] lg:max-w-4xl">
+    <main className="flex flex-1 items-center justify-center px-0 py-6 sm:px-4 sm:py-12">
+      <div className="w-full overflow-hidden rounded-[40px] bg-cream-card shadow-[0_30px_60px_-20px_oklch(30%_0.02_60_/_0.35)] sm:max-w-2xl lg:max-w-5xl">
         <div className="flex items-center justify-between bg-coral px-6 py-5 text-white">
           <Link href="/" className="font-bold">
             ‹
